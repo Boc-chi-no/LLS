@@ -19,14 +19,14 @@ import (
 func StatsLink(c *gin.Context) {
 	var req model.ManageLinkReq
 
-	if err := c.BindJSON(&req); err != nil {
-		model.FailureResponse(c,http.StatusBadRequest,http.StatusBadRequest,"序列化失败","")
-		log.ErrorPrint("Deserialization failed: %s",err)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, "序列化失败", "")
+		log.ErrorPrint("Deserialization failed: %s", err)
 		return
 	}
 
-	if req.Page <= 0||req.Size<= 0||req.Size> 100{
-		model.FailureResponse(c,http.StatusBadRequest,http.StatusBadRequest,"错误的分页参数","")
+	if req.Page <= 0 || req.Size <= 0 || req.Size > 100 {
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, "错误的分页参数", "")
 		return
 	}
 
@@ -37,52 +37,52 @@ func StatsLink(c *gin.Context) {
 	_ = session.Save()
 
 	if sessionCaptcha != req.CAPTCHA {
-		model.FailureResponse(c,http.StatusForbidden,http.StatusForbidden,"验证码检验失败!","")
+		model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, "验证码检验失败!", "")
 		return
 	}
 
 	var res []model.Link
-	table:=db.NewModel(setting.Cfg.MongoDB.Database, "links")
-	table.Find(bson.D{{Key:"_id",Value: req.Hash}},&res)
+	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
+	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}}, &res)
 
-	if res != nil&&len(res) > 0 {
+	if res != nil && len(res) > 0 {
 		if res[0].Token != req.Token {
-			model.FailureResponse(c,http.StatusForbidden,http.StatusForbidden,"链接密码检验失败!","")
+			model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, "链接密码检验失败!", "")
 			return
 		}
 
 		var statsRes []model.LinkInfo
-		statsTable:=db.NewModel(setting.Cfg.MongoDB.Database, "link_access")
+		statsTable := db.SetModel(setting.Cfg.MongoDB.Database, "link_access")
 
 		offset := (req.Page - 1) * req.Size
-		totalCount := statsTable.CountDocuments(bson.D{{Key:"hash",Value: req.Hash}})
+		totalCount, _ := statsTable.CountDocuments(bson.D{{Key: "hash", Value: req.Hash}})
 		totalPages := int64(math.Ceil(float64(totalCount) / float64(req.Size)))
 
-		if totalCount>0&&req.Page<=totalPages{
-			statsTable.Find(bson.D{{Key:"hash",Value: req.Hash}},&statsRes,options.Find().SetSkip(offset).SetLimit(req.Size))
+		if totalCount > 0 && req.Page <= totalPages {
+			_ = statsTable.Find(bson.D{{Key: "hash", Value: req.Hash}}, &statsRes, options.Find().SetSkip(offset).SetLimit(req.Size))
 
 			data := map[string]interface{}{
 				"current": req.Page,
-				"size": req.Size,
+				"size":    req.Size,
 
-				"pages": totalPages,
-				"total": totalCount,
-				"records":statsRes,
+				"pages":   totalPages,
+				"total":   totalCount,
+				"records": statsRes,
 			}
 
-			model.SuccessResponse(c,data)
-		}else {
+			model.SuccessResponse(c, data)
+		} else {
 			data := map[string]interface{}{
 				"current": req.Page,
-				"size": req.Size,
-				"pages": 0,
-				"total": 0,
-				"records":[]string{},
+				"size":    req.Size,
+				"pages":   0,
+				"total":   0,
+				"records": []string{},
 			}
-			model.SuccessResponse(c,data)
+			model.SuccessResponse(c, data)
 		}
 
 	} else {
-		model.FailureResponse(c,404,404,"未找到查询的链接!","")
+		model.FailureResponse(c, 404, 404, "未找到查询的链接!", "")
 	}
 }

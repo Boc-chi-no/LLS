@@ -8,18 +8,18 @@ import (
 	"time"
 )
 
-var seed uint32 = uint32(10011011)
-var Hex62Map map[int]string = map[int]string{
-	0: "0",
-	1: "1",
-	2: "2",
-	3: "3",
-	4: "4",
-	5: "5",
-	6: "6",
-	7: "7",
-	8: "8",
-	9: "9",
+var seed = uint32(10011011)
+var Hex62Map = map[int]string{
+	0:  "0",
+	1:  "1",
+	2:  "2",
+	3:  "3",
+	4:  "4",
+	5:  "5",
+	6:  "6",
+	7:  "7",
+	8:  "8",
+	9:  "9",
 	10: "a",
 	11: "b",
 	12: "c",
@@ -90,14 +90,14 @@ func uint32ToHex62(uitNum uint32) string {
 	}
 	return hex62Str
 }
-// This method generates the hash
-func ShortenLink(url model.InsertLinkReq) model.Link {
+
+// GenerateShortenLink This method generates the hash
+func GenerateShortenLink(url model.InsertLinkReq) model.Link {
 	now := time.Now()
 	sec := now.Unix()
 	nsecStr := strconv.FormatInt(now.UnixNano(), 16)
-	murmurHash := murmur3.Sum32WithSeed([]byte(url.URL + nsecStr), seed)
+	murmurHash := murmur3.Sum32WithSeed([]byte(url.URL+nsecStr), seed)
 	hex62Hash := uint32ToHex62(murmurHash)
-
 
 	var link model.Link
 	link.Created = sec

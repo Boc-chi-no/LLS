@@ -29,8 +29,12 @@
 # Config
 /app.ini
 
-# Go statik
+# local
 /logs/*
+/db-data/*
 /public/*
+
+
+# Go statik
 !/public/resources
 /statik/statik.go

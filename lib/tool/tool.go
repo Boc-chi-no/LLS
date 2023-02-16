@@ -1,9 +1,7 @@
 package tool
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
 	"linkshortener/model"
@@ -16,6 +14,7 @@ import (
 )
 
 var src = rand.NewSource(time.Now().UnixNano())
+
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const (
 	letterIdxBits = 6                    // 6 bits to represent a letter index
@@ -39,28 +38,29 @@ func NowDay() string {
 	return tm.Format("20060102")
 }
 
-//StringToObject json字符串转对象
-func StringToObject(str string, data interface{}) bool {
-	js := json.NewDecoder(bytes.NewReader([]byte(str)))
-	js.UseNumber()
-	err := js.Decode(data)
-	if err == nil {
-		return true
-	}
-	return false
-}
+// StringToObject json字符串转对象
+//func StringToObject(str string, data interface{}) bool {
+//	js := json.NewDecoder(bytes.NewReader([]byte(str)))
+//	js.UseNumber()
+//	err := js.Decode(data)
+//	if err == nil {
+//		return true
+//	}
+//	return false
+//}
 
-//Mkdir 创建目录
-func Mkdir(path string) {
-	_, e1 := os.Stat(path)
-	if e1 != nil && !os.IsExist(e1) {
+// Mkdir 创建目录
+func Mkdir(path string) error {
+	_, err := os.Stat(path)
+	if err != nil && !os.IsExist(err) {
 		if path != "" {
-			os.MkdirAll(path, 0777)
+			err = os.MkdirAll(path, 0777)
 		}
 	}
+	return err
 }
 
-//FileExist 判断文件是否存在，存在返回true 不存在返回false
+// FileExist 判断文件是否存在，存在返回true 不存在返回false
 func FileExist(fileName string) bool {
 	_, err := os.Stat(fileName)
 	if err == nil {
@@ -88,12 +88,11 @@ func GetToken(length int) string {
 	return sb.String()
 }
 
-
 func NewLimiter(reqRate rate.Limit, reqBurst int, reqTimeout time.Duration) gin.HandlerFunc {
 	limiters := &sync.Map{}
 
 	return func(c *gin.Context) {
-		if c.FullPath() != ""{
+		if c.FullPath() != "" {
 			key := c.ClientIP()
 			limit, _ := limiters.LoadOrStore(key, rate.NewLimiter(reqRate, reqBurst))
 
@@ -101,7 +100,7 @@ func NewLimiter(reqRate rate.Limit, reqBurst int, reqTimeout time.Duration) gin.
 			defer cancel()
 
 			if err := limit.(*rate.Limiter).Wait(ctx); err != nil {
-				model.FailureResponse(c,http.StatusTooManyRequests,http.StatusTooManyRequests, "请求过于频繁","")
+				model.FailureResponse(c, http.StatusTooManyRequests, http.StatusTooManyRequests, "请求过于频繁", "")
 			}
 		}
 		c.Next()

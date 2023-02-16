@@ -21,29 +21,29 @@ const (
 	defaultDpi      = 72
 )
 
-// 图形验证码 使用字体默认ttf格式
+// Captcha 图形验证码 使用字体默认ttf格式
 // w 图片宽度, h图片高度，CodeLen验证码的个数
 // FontSize 字体大小, Dpi 清晰度
 // mode 验证模式 0：普通字符串，1：10以内简单数学公式
 type Captcha struct {
-	W, H, CodeLen      int
-	FontSize           float64
-	Dpi                int
-	mode               int
+	W, H, CodeLen int
+	FontSize      float64
+	Dpi           int
+	mode          int
 }
 
-// 实例化验证码
+// NewCaptcha 实例化验证码
 func NewCaptcha(w, h, CodeLen int) *Captcha {
 	return &Captcha{W: w, H: h, CodeLen: CodeLen}
 }
 
-// 输出
+// OutPut 输出
 func (captcha *Captcha) OutPut() (string, *image.RGBA) {
 	img := captcha.initCanvas()
 	return captcha.doImage(img)
 }
 
-// 获取区间[-m, n]的随机数
+// RangeRand 获取区间[-m, n]的随机数
 func (captcha *Captcha) RangeRand(min, max int64) int64 {
 	if min > max {
 		log.ErrorPrint("the min is greater than max!")
@@ -116,7 +116,7 @@ func (captcha *Captcha) initCanvas() *image.RGBA {
 	// 填充背景色
 	for x := 0; x < captcha.W; x++ {
 		for y := 0; y < captcha.H; y++ {
-			dest.Set(x, y, color.RGBA{r, g, b, 255}) //设定alpha图片的透明度
+			dest.Set(x, y, color.RGBA{R: r, G: g, B: b, A: 255}) //设定alpha图片的透明度
 		}
 	}
 
@@ -138,7 +138,7 @@ func (captcha *Captcha) doImage(dest *image.RGBA) (string, *image.RGBA) {
 	var codeStr string
 	if captcha.mode == 1 {
 		ret, formula := captcha.getFormulaMixData()
-		log.DebugPrint("Challenge: %s, Answer: %s",formula, ret)
+		log.DebugPrint("Challenge: %s, Answer: %s", formula, ret)
 		codeStr = ret
 		captcha.doFormula(gc, formula)
 	} else {
@@ -160,7 +160,7 @@ func (captcha *Captcha) doCode(gc *draw2dimg.GraphicContext, code string) {
 		g := uint8(captcha.RangeRand(0, 200))
 		b := uint8(captcha.RangeRand(0, 200))
 
-		gc.SetFillColor(color.RGBA{r, g, b, 255})
+		gc.SetFillColor(color.RGBA{R: r, G: g, B: b, A: 255})
 		gc.FillStringAt(string(code[l]), float64(x)+captcha.FontSize*float64(l), float64(int64(captcha.H)-y)+captcha.FontSize)
 		gc.Stroke()
 	}
@@ -177,7 +177,7 @@ func (captcha *Captcha) doFormula(gc *draw2dimg.GraphicContext, formulaArr []str
 		g := uint8(captcha.RangeRand(10, 200))
 		b := uint8(captcha.RangeRand(10, 200))
 
-		gc.SetFillColor(color.RGBA{r, g, b, 255})
+		gc.SetFillColor(color.RGBA{R: r, G: g, B: b, A: 255})
 
 		gc.FillStringAt(formulaArr[l], float64(x)+captcha.FontSize*float64(l), captcha.FontSize+float64(y))
 		gc.Stroke()
@@ -196,7 +196,7 @@ func (captcha *Captcha) doLine(gc *draw2dimg.GraphicContext) {
 		g := uint8(captcha.RangeRand(0, 255))
 		b := uint8(captcha.RangeRand(0, 255))
 
-		gc.SetStrokeColor(color.RGBA{r, g, b, 255})
+		gc.SetStrokeColor(color.RGBA{R: r, G: g, B: b, A: 255})
 
 		// 初始化位置
 		gc.MoveTo(float64(captcha.RangeRand(0, int64(captcha.W)+10)), float64(captcha.RangeRand(0, int64(captcha.H)+5)))
@@ -216,7 +216,7 @@ func (captcha *Captcha) doPoint(gc *draw2dimg.GraphicContext) {
 		g := uint8(captcha.RangeRand(0, 255))
 		b := uint8(captcha.RangeRand(0, 255))
 
-		gc.SetStrokeColor(color.RGBA{r, g, b, 255})
+		gc.SetStrokeColor(color.RGBA{R: r, G: g, B: b, A: 255})
 
 		x := captcha.RangeRand(0, int64(captcha.W)+10) + 1
 		y := captcha.RangeRand(0, int64(captcha.H)+5) + 1
@@ -243,7 +243,7 @@ func (captcha *Captcha) doSinLine(gc *draw2dimg.GraphicContext) {
 	g := uint8(captcha.RangeRand(128, 255))
 	b := uint8(captcha.RangeRand(128, 255))
 
-	gc.SetStrokeColor(color.RGBA{r, g, b, 255})
+	gc.SetStrokeColor(color.RGBA{R: r, G: g, B: b, A: 255})
 	gc.SetLineWidth(float64(captcha.RangeRand(2, 4)))
 
 	var i float64
@@ -260,18 +260,17 @@ func (captcha *Captcha) doSinLine(gc *draw2dimg.GraphicContext) {
 	gc.Stroke()
 }
 
-//设置模式
+// SetMode 设置模式
 func (captcha *Captcha) SetMode(mode int) {
 	captcha.mode = mode
 }
 
-
-// 设置字体大小
+// SetFontSize 设置字体大小
 func (captcha *Captcha) SetFontSize(fontSize float64) {
 	captcha.FontSize = fontSize
 }
 
-//设置相关字体
+// 设置相关字体
 func (captcha *Captcha) setFont(gc *draw2dimg.GraphicContext) {
 	font := statikFS.CaptchaFont
 

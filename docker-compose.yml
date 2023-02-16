@@ -1,0 +1,24 @@
+
+version: '3.3'
+services:
+  apils:
+    container_name: 'apils'
+    build: './'
+    ports:
+      - '8040:8040'
+    volumes:
+      - './:/go/src/app'
+    depends_on:
+      - 'mongols'
+  mongols:
+    image: 'mongo:6.0.4'
+    container_name: 'mongols'
+    command: ["--auth","--quiet","--logpath","/dev/null"]
+    environment:
+      MONGO_INITDB_DATABASE: "shortener"
+    volumes:
+      - ./db/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./db-data:/data/db
+    ports:
+      - '27117:27017'
+    restart: unless-stopped

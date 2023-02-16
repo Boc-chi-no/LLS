@@ -63,10 +63,10 @@ func InitRouter() {
 
 	router.GET("/s/:hash", Redirect) //短链接重定向
 
-	router.GET("/api/captcha", Captcha)            //生成验证码
-	router.POST("/api/generate_link", InsertLink)  //创建链接
-	router.POST("/api/stats_link", StatsLink)      //链接统计
-	router.POST("/api/delete_link", DeleteLink)    //删除链接
+	router.GET("/api/captcha", Captcha)             //生成验证码
+	router.POST("/api/generate_link", GenerateLink) //创建链接
+	router.POST("/api/stats_link", StatsLink)       //链接统计
+	router.POST("/api/delete_link", DeleteLink)     //删除链接
 
 	if setting.Cfg.HTTP.FilesEmbed { //静态文件
 		router.NoRoute(gin.WrapH(http.FileServer(statikFS.StatikFS))) //使用内嵌资源
@@ -101,16 +101,15 @@ func InitController() {
 	store := memstore.NewStore([]byte(SessionSecret))
 	router.Use(sessions.Sessions("session", store))
 
-
 	if setting.Cfg.RunMode == "dev" {
 		pprof.Register(router) //debug
 	}
 }
 
 func RunServer() {
-	log.InfoPrint("Listening and serving HTTP on %s",setting.Cfg.HTTP.Listen)
+	log.InfoPrint("Listening and serving HTTP on %s", setting.Cfg.HTTP.Listen)
 	err := router.Run(setting.Cfg.HTTP.Listen)
 	if err != nil {
-		log.PanicPrint("Start Web Server Fail: %s",err)
+		log.PanicPrint("Start Web Server Fail: %s", err)
 	}
 }

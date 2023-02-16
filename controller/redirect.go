@@ -20,37 +20,36 @@ func Redirect(c *gin.Context) {
 	shortHash := c.Param("hash")
 
 	var res []model.Link
-	table:=db.NewModel(setting.Cfg.MongoDB.Database, "links")
+	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
 
+	_ = table.Find(bson.D{{Key: "_id", Value: shortHash}, {Key: "delete", Value: false}}, &res)
 
-	table.Find(bson.D{{Key:"_id",Value: shortHash},{Key:"delete",Value: false}},&res)
-
-	if res != nil&&len(res) > 0 {
-		go accessLogWorker(c.ClientIP(),shortHash,c.Request.Header,time.Now().Unix())
-		log.DebugPrint("RedirectLink: %s",res[0].URL)
+	if res != nil && len(res) > 0 {
+		go accessLogWorker(c.ClientIP(), shortHash, c.Request.Header, time.Now().Unix())
+		log.DebugPrint("RedirectLink: %s", res[0].URL)
 		c.Redirect(http.StatusTemporaryRedirect, res[0].URL)
 	} else {
-		model.FailureResponse(c,404,404,"未找到查询的链接!","")
+		model.FailureResponse(c, 404, 404, "未找到查询的链接!", "")
 	}
 }
 
-func accessLogWorker(ip string,hash string,header http.Header,nowTime int64) {
+func accessLogWorker(ip string, hash string, header http.Header, nowTime int64) {
 	qqWry := ip2location.NewQQwry()
 	location := qqWry.Find(ip)
 	uaInfo := uap.Parse(header)
 
 	var linkInfo = model.LinkInfo{
-		Hash: hash,
-		IP: ip,
-		Header: header,
-		Location:location,
-		UAInfo: uaInfo,
-		Created: nowTime,
+		Hash:     hash,
+		IP:       ip,
+		Header:   header,
+		Location: location,
+		UAInfo:   uaInfo,
+		Created:  nowTime,
 	}
 
-	table:=db.NewModel(setting.Cfg.MongoDB.Database, "link_access")
-	res:=table.InsertOne(linkInfo)
-	if res==nil{
+	table := db.SetModel(setting.Cfg.MongoDB.Database, "link_access")
+	res, _ := table.InsertOne(linkInfo)
+	if res == nil {
 		log.WarnPrint("Failed to write access log to database!")
 	}
 }

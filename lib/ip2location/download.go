@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"encoding/binary"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -15,9 +15,11 @@ func getKey() (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
-	if body, err := ioutil.ReadAll(resp.Body); err != nil {
+	if body, err := io.ReadAll(resp.Body); err != nil {
 		return 0, err
 	} else {
 		// @see https://stackoverflow.com/questions/34078427/how-to-read-packed-binary-data-in-go
@@ -30,9 +32,11 @@ func GetOnline() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
-	if body, err := ioutil.ReadAll(resp.Body); err != nil {
+	if body, err := io.ReadAll(resp.Body); err != nil {
 		return nil, err
 	} else {
 		if key, err := getKey(); err != nil {
@@ -51,7 +55,7 @@ func GetOnline() ([]byte, error) {
 				return nil, err
 			}
 
-			return ioutil.ReadAll(reader)
+			return io.ReadAll(reader)
 		}
 	}
 }

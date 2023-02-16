@@ -9,6 +9,7 @@ import (
 	"linkshortener/setting"
 	_ "linkshortener/statik"
 	"linkshortener/statikFS"
+	"time"
 )
 
 func main() {
@@ -25,4 +26,6 @@ func main() {
 	controller.InitRouter()
 
 	controller.RunServer()
+
+	time.Sleep(5 * time.Second)
 }

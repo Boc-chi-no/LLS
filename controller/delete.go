@@ -18,7 +18,7 @@ import (
 func DeleteLink(c *gin.Context) {
 	var req model.ManageLinkReq
 
-	if err := c.BindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, "序列化失败", "")
 		log.ErrorPrint("Deserialization failed: %s", err)
 		return
@@ -36,19 +36,24 @@ func DeleteLink(c *gin.Context) {
 	}
 
 	var res []model.Link
-	table := db.NewModel(setting.Cfg.MongoDB.Database, "links")
-	table.Find(bson.D{{Key: "_id", Value: req.Hash}, {Key: "delete", Value: false}}, &res)
+	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
+	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}, {Key: "delete", Value: false}}, &res)
 
 	if res != nil && len(res) > 0 {
 		if res[0].Token != req.Token {
 			model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, "链接密码检验失败!", "")
 			return
 		}
-		table.UpdateByID(req.Hash, bson.M{
+		_, err := table.UpdateByID(req.Hash, bson.M{
 			"$set": bson.M{
 				"delete": true,
 			},
 		})
+
+		if err != nil {
+			model.FailureResponse(c, http.StatusInternalServerError, http.StatusInternalServerError, "数据库操作失败!", "")
+			return
+		}
 		model.SuccessResponse(c, nil)
 	} else {
 		model.FailureResponse(c, 404, 404, "未找到查询的链接!", "")
