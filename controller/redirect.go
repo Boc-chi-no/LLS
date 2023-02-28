@@ -17,15 +17,20 @@ import (
 // Usage:
 // Just hit http://localhost:8040/s/4nGHqG ( use the generated hash )
 func Redirect(c *gin.Context) {
-	shortHash := c.Param("hash")
+	req := model.RedirectLinkReq{}
+
+	if err := c.BindUri(&req); err != nil {
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, "序列化失败", "")
+		log.ErrorPrint("Deserialization failed: %s", err)
+		return
+	}
 
 	var res []model.Link
 	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
-
-	_ = table.Find(bson.D{{Key: "_id", Value: shortHash}, {Key: "delete", Value: false}}, &res)
+	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}, {Key: "delete", Value: false}}, &res)
 
 	if res != nil && len(res) > 0 {
-		go accessLogWorker(c.ClientIP(), shortHash, c.Request.Header, time.Now().Unix())
+		go accessLogWorker(c.ClientIP(), req.Hash, c.Request.Header, time.Now().Unix())
 		log.DebugPrint("RedirectLink: %s", res[0].URL)
 		c.Redirect(http.StatusTemporaryRedirect, res[0].URL)
 	} else {
