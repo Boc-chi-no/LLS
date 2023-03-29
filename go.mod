@@ -10,6 +10,7 @@ require (
 	github.com/go-ini/ini v1.67.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/llgcode/draw2d v0.0.0-20210904075650-80aa0a2a901d
+	github.com/nicksnyder/go-i18n/v2 v2.2.1
 	github.com/rakyll/statik v0.1.7
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/ua-parser/uap-go v0.0.0-20211112212520-00c877edfe0f

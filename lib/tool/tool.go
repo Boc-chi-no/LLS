@@ -1,15 +1,9 @@
 package tool
 
 import (
-	"context"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/time/rate"
-	"linkshortener/model"
 	"math/rand"
-	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -38,7 +32,16 @@ func NowDay() string {
 	return tm.Format("20060102")
 }
 
-// StringToObject json字符串转对象
+func ConcatStrings(str ...string) string {
+	var sb strings.Builder
+	for _, s := range str {
+		sb.WriteString(s)
+	}
+	return sb.String()
+}
+
+// StringToObject is a utility function that takes a JSON string and decodes it into the given data object.
+// The function returns a boolean value indicating whether the decoding was successful or not.
 //func StringToObject(str string, data interface{}) bool {
 //	js := json.NewDecoder(bytes.NewReader([]byte(str)))
 //	js.UseNumber()
@@ -49,7 +52,8 @@ func NowDay() string {
 //	return false
 //}
 
-// Mkdir 创建目录
+// Mkdir creates a directory at the given path if it does not already exist.
+// Returns an error if the directory could not be created or if an error occurred during stat.
 func Mkdir(path string) error {
 	_, err := os.Stat(path)
 	if err != nil && !os.IsExist(err) {
@@ -60,7 +64,7 @@ func Mkdir(path string) error {
 	return err
 }
 
-// FileExist 判断文件是否存在，存在返回true 不存在返回false
+// FileExist checks whether the given file exists or not
 func FileExist(fileName string) bool {
 	_, err := os.Stat(fileName)
 	if err == nil {
@@ -86,23 +90,4 @@ func GetToken(length int) string {
 		remain--
 	}
 	return sb.String()
-}
-
-func NewLimiter(reqRate rate.Limit, reqBurst int, reqTimeout time.Duration) gin.HandlerFunc {
-	limiters := &sync.Map{}
-
-	return func(c *gin.Context) {
-		if c.FullPath() != "" {
-			key := c.ClientIP()
-			limit, _ := limiters.LoadOrStore(key, rate.NewLimiter(reqRate, reqBurst))
-
-			ctx, cancel := context.WithTimeout(c, reqTimeout)
-			defer cancel()
-
-			if err := limit.(*rate.Limiter).Wait(ctx); err != nil {
-				model.FailureResponse(c, http.StatusTooManyRequests, http.StatusTooManyRequests, "请求过于频繁", "")
-			}
-		}
-		c.Next()
-	}
 }

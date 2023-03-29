@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"linkshortener/db"
+	"linkshortener/i18n"
 	"linkshortener/lib/ip2location"
 	"linkshortener/lib/uap"
 	"linkshortener/log"
@@ -18,9 +19,10 @@ import (
 // Just hit http://localhost:8040/s/4nGHqG ( use the generated hash )
 func Redirect(c *gin.Context) {
 	req := model.RedirectLinkReq{}
+	localizer := i18n.GetLocalizer(c)
 
 	if err := c.BindUri(&req); err != nil {
-		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, "序列化失败", "")
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("deserializationFailed", nil), "")
 		log.ErrorPrint("Deserialization failed: %s", err)
 		return
 	}
@@ -34,7 +36,7 @@ func Redirect(c *gin.Context) {
 		log.DebugPrint("RedirectLink: %s", res[0].URL)
 		c.Redirect(http.StatusTemporaryRedirect, res[0].URL)
 	} else {
-		model.FailureResponse(c, 404, 404, "未找到查询的链接!", "")
+		model.FailureResponse(c, 404, 404, localizer.GetMessage("noLinkFound", nil), "")
 	}
 }
 

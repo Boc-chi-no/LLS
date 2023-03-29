@@ -4,6 +4,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"linkshortener/db"
+	"linkshortener/i18n"
 	"linkshortener/lib/shorten"
 	"linkshortener/log"
 	"linkshortener/model"
@@ -23,26 +24,27 @@ import (
 //	}
 func GenerateLink(c *gin.Context) {
 	var req model.InsertLinkReq
+	localizer := i18n.GetLocalizer(c)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, "序列化失败", "")
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("deserializationFailed", nil), "")
 		log.ErrorPrint("Deserialization failed: %s", err)
 		return
 	}
 
-	// 初始化session对象
+	// Initialize session object
 	session := sessions.Default(c)
 	sessionCaptcha := session.Get("captcha")
 	session.Delete("captcha")
 	_ = session.Save()
 
 	if sessionCaptcha != req.CAPTCHA {
-		model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, "验证码检验失败!", "")
+		model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, localizer.GetMessage("captchaVerificationFailed", nil), "")
 		return
 	}
 
 	if !strings.HasPrefix(req.URL, "http://") && !strings.HasPrefix(req.URL, "https://") {
-		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, "非法的URL", "")
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("invalidUrl", nil), "")
 		log.WarnPrint("Illegal URL: %s", req.URL)
 		return
 	}
@@ -52,7 +54,7 @@ func GenerateLink(c *gin.Context) {
 	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
 	res, _ := table.InsertOne(link)
 	if res == nil {
-		model.FailureResponse(c, 500, 500, "写入数据库失败!", "")
+		model.FailureResponse(c, 500, 500, localizer.GetMessage("databaseOperationFailed", nil), "")
 		return
 	}
 

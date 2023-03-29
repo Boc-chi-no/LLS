@@ -16,20 +16,20 @@ type MongoDB struct {
 	dbPool       MongoPooler
 }
 
-// SetPool 设置连接池
+// SetPool Setting up a connection pool
 func (db *MongoDB) SetPool(pool MongoPooler) *MongoDB {
 	db.dbPool = pool
 	return db
 }
 
-// SetDB 设置连接名和数据库名称
+// SetDB Set the connection name and database name
 func (db *MongoDB) SetDB(connectName, databaseName string) *MongoDB {
 	db.ConnectName = connectName
 	db.DatabaseName = databaseName
 	return db
 }
 
-// CreateConnectFunc 创建连接
+// CreateConnectFunc Create a connection
 type CreateConnectFunc func(*MongoDB) []MongoConnect
 
 func NewDB() *MongoDB {
@@ -80,13 +80,12 @@ type Tabler interface {
 	CountDocuments(filter interface{}) (int64, error)
 }
 
-// Table 操作表
 type Table struct {
 	tableName string
 	db        *MongoDB
 }
 
-// NewTable 初始化表
+// NewTable Initialization table
 func NewTable(db *MongoDB, tableName string) Tabler {
 	var table = &Table{}
 	table.tableName = tableName
@@ -95,7 +94,7 @@ func NewTable(db *MongoDB, tableName string) Tabler {
 	return table
 }
 
-// SetTable 设置表
+// SetTable Setting table
 func SetTable(db *MongoDB, tableName string) Tabler {
 	var table = &Table{}
 	table.tableName = tableName
@@ -103,7 +102,7 @@ func SetTable(db *MongoDB, tableName string) Tabler {
 	return table
 }
 
-// CreateCollection 创建集合
+// CreateCollection Create a collection
 func (t *Table) CreateCollection() {
 	db := t.getDB()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
@@ -128,7 +127,7 @@ func (t *Table) CreateCollection() {
 	}
 }
 
-// SetDB 设置数据库
+// SetDB Setting up the database
 func (t *Table) SetDB(db *MongoDB) {
 	t.db = db
 }
@@ -272,7 +271,6 @@ func SetModel(dbName, tableName string) Tabler {
 	return SetTable(db.SetDB(dbName, dbName), tableName)
 }
 
-// db 全局变量
 var db *MongoDB
 
 func InitDB() {

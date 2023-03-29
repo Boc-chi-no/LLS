@@ -6,6 +6,7 @@ import (
 	"github.com/llgcode/draw2d/draw2dimg"
 	"image"
 	"image/color"
+	"linkshortener/lib/tool"
 	"linkshortener/log"
 	"linkshortener/statikFS"
 	"math"
@@ -14,17 +15,16 @@ import (
 )
 
 const (
-	chars           = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	operator        = "+-*/"
 	defaultLen      = 4
 	defaultFontSize = 25
 	defaultDpi      = 72
 )
 
-// Captcha 图形验证码 使用字体默认ttf格式
-// w 图片宽度, h图片高度，CodeLen验证码的个数
-// FontSize 字体大小, Dpi 清晰度
-// mode 验证模式 0：普通字符串，1：10以内简单数学公式
+// Captcha Graphical CAPTCHA Use font default ttf format
+// w image width, h image height, CodeLen number of CAPTCHA
+// FontSize font size, Dpi clarity
+// mode validation mode 0: normal string, 1: simple mathematical formula up to 10
 type Captcha struct {
 	W, H, CodeLen int
 	FontSize      float64
@@ -32,18 +32,18 @@ type Captcha struct {
 	mode          int
 }
 
-// NewCaptcha 实例化验证码
+// NewCaptcha Instantiating CAPTCHA
 func NewCaptcha(w, h, CodeLen int) *Captcha {
 	return &Captcha{W: w, H: h, CodeLen: CodeLen}
 }
 
-// OutPut 输出
+// OutPut generates a captcha image and returns the image in RGBA format
 func (captcha *Captcha) OutPut() (string, *image.RGBA) {
 	img := captcha.initCanvas()
 	return captcha.doImage(img)
 }
 
-// RangeRand 获取区间[-m, n]的随机数
+// RangeRand Get the random number in the interval [-m, n]
 func (captcha *Captcha) RangeRand(min, max int64) int64 {
 	if min > max {
 		log.ErrorPrint("the min is greater than max!")
@@ -62,22 +62,16 @@ func (captcha *Captcha) RangeRand(min, max int64) int64 {
 	}
 }
 
-// 随机字符串
+// Random strings
 func (captcha *Captcha) getRandCode() string {
 	if captcha.CodeLen <= 0 {
 		captcha.CodeLen = defaultLen
 	}
 
-	var code = ""
-	for l := 0; l < captcha.CodeLen; l++ {
-		charsPos := captcha.RangeRand(0, int64(len(chars)-1))
-		code += string(chars[charsPos])
-	}
-
-	return code
+	return tool.GetToken(captcha.CodeLen)
 }
 
-// 获取算术运算公式
+// getFormulaMixData returns a tuple with an arithmetic operation string and an array of strings containing the operands and the operator
 func (captcha *Captcha) getFormulaMixData() (string, []string) {
 	num1 := int(captcha.RangeRand(6, 12))
 	num2 := int(captcha.RangeRand(0, 6))
@@ -104,26 +98,26 @@ func (captcha *Captcha) getFormulaMixData() (string, []string) {
 	return strconv.Itoa(ret), []string{strNum1, opRet, strNum2, "=", "?"}
 }
 
-// 初始化画布
+// Initialising the canvas
 func (captcha *Captcha) initCanvas() *image.RGBA {
 	dest := image.NewRGBA(image.Rect(0, 0, captcha.W, captcha.H))
 
-	// 随机色
+	// Random colours
 	r := uint8(255) // uint8(captcha.RangeRand(50, 250))
 	g := uint8(255) // uint8(captcha.RangeRand(50, 250))
 	b := uint8(255) // uint8(captcha.RangeRand(50, 250))
 
-	// 填充背景色
+	// Fill background colour
 	for x := 0; x < captcha.W; x++ {
 		for y := 0; y < captcha.H; y++ {
-			dest.Set(x, y, color.RGBA{R: r, G: g, B: b, A: 255}) //设定alpha图片的透明度
+			dest.Set(x, y, color.RGBA{R: r, G: g, B: b, A: 255}) //Set the transparency of the alpha image
 		}
 	}
 
 	return dest
 }
 
-// 处理图像
+// doImage generates an image and the corresponding captcha code
 func (captcha *Captcha) doImage(dest *image.RGBA) (string, *image.RGBA) {
 	gc := draw2dimg.NewGraphicContext(dest)
 
@@ -149,13 +143,13 @@ func (captcha *Captcha) doImage(dest *image.RGBA) (string, *image.RGBA) {
 	return codeStr, dest
 }
 
-// 验证码字符设置到图像上
+// doCode captcha characters set to the image
 func (captcha *Captcha) doCode(gc *draw2dimg.GraphicContext, code string) {
 	for l := 0; l < len(code); l++ {
 		y := captcha.RangeRand(int64(captcha.FontSize)-1, int64(captcha.H)+6)
 		x := captcha.RangeRand(1, 20)
 
-		// 随机色
+		// Random colours
 		r := uint8(captcha.RangeRand(0, 200))
 		g := uint8(captcha.RangeRand(0, 200))
 		b := uint8(captcha.RangeRand(0, 200))
@@ -166,13 +160,13 @@ func (captcha *Captcha) doCode(gc *draw2dimg.GraphicContext, code string) {
 	}
 }
 
-// 验证码字符设置到图像上
+// doFormula captcha characters set to the image
 func (captcha *Captcha) doFormula(gc *draw2dimg.GraphicContext, formulaArr []string) {
 	for l := 0; l < len(formulaArr); l++ {
 		y := captcha.RangeRand(0, 10)
 		x := captcha.RangeRand(5, 10)
 
-		// 随机色
+		// Random colours
 		r := uint8(captcha.RangeRand(10, 200))
 		g := uint8(captcha.RangeRand(10, 200))
 		b := uint8(captcha.RangeRand(10, 200))
@@ -184,21 +178,21 @@ func (captcha *Captcha) doFormula(gc *draw2dimg.GraphicContext, formulaArr []str
 	}
 }
 
-// 增加干扰线
+// doLine Adding interference lines
 func (captcha *Captcha) doLine(gc *draw2dimg.GraphicContext) {
-	// 设置干扰线
+	// Setting up interference lines
 	for n := 0; n < 5; n++ {
 		// gc.SetLineWidth(float64(captcha.RangeRand(1, 2)))
 		gc.SetLineWidth(1)
 
-		// 随机背景色
+		// Random background colours
 		r := uint8(captcha.RangeRand(0, 255))
 		g := uint8(captcha.RangeRand(0, 255))
 		b := uint8(captcha.RangeRand(0, 255))
 
 		gc.SetStrokeColor(color.RGBA{R: r, G: g, B: b, A: 255})
 
-		// 初始化位置
+		// Initialisation position
 		gc.MoveTo(float64(captcha.RangeRand(0, int64(captcha.W)+10)), float64(captcha.RangeRand(0, int64(captcha.H)+5)))
 		gc.LineTo(float64(captcha.RangeRand(0, int64(captcha.W)+10)), float64(captcha.RangeRand(0, int64(captcha.H)+5)))
 
@@ -206,12 +200,12 @@ func (captcha *Captcha) doLine(gc *draw2dimg.GraphicContext) {
 	}
 }
 
-// 增加干扰点
+// Adding points of disturbance
 func (captcha *Captcha) doPoint(gc *draw2dimg.GraphicContext) {
 	for n := 0; n < 50; n++ {
 		gc.SetLineWidth(float64(captcha.RangeRand(1, 3)))
 
-		// 随机色
+		// Random colours
 		r := uint8(captcha.RangeRand(0, 255))
 		g := uint8(captcha.RangeRand(0, 255))
 		b := uint8(captcha.RangeRand(0, 255))
@@ -228,7 +222,7 @@ func (captcha *Captcha) doPoint(gc *draw2dimg.GraphicContext) {
 	}
 }
 
-// 增加正弦干扰线
+// Adding sine interference lines
 func (captcha *Captcha) doSinLine(gc *draw2dimg.GraphicContext) {
 	h1 := captcha.RangeRand(-12, 12)
 	h2 := captcha.RangeRand(-1, 1)
@@ -238,7 +232,7 @@ func (captcha *Captcha) doSinLine(gc *draw2dimg.GraphicContext) {
 	h := float64(captcha.H)
 	w := float64(captcha.W)
 
-	// 随机色
+	// Random colours
 	r := uint8(captcha.RangeRand(128, 255))
 	g := uint8(captcha.RangeRand(128, 255))
 	b := uint8(captcha.RangeRand(128, 255))
@@ -260,32 +254,32 @@ func (captcha *Captcha) doSinLine(gc *draw2dimg.GraphicContext) {
 	gc.Stroke()
 }
 
-// SetMode 设置模式
+// SetMode Setting mode
 func (captcha *Captcha) SetMode(mode int) {
 	captcha.mode = mode
 }
 
-// SetFontSize 设置字体大小
+// SetFontSize Set font size
 func (captcha *Captcha) SetFontSize(fontSize float64) {
 	captcha.FontSize = fontSize
 }
 
-// 设置相关字体
+// setFont Setting the font
 func (captcha *Captcha) setFont(gc *draw2dimg.GraphicContext) {
 	font := statikFS.CaptchaFont
 
-	// 设置自定义字体相关信息
+	// Set custom font information
 	gc.FontCache = draw2d.NewSyncFolderFontCache("./arphic.ttf")
 	gc.FontCache.Store(draw2d.FontData{Name: "Arphic Roman-Mincho Ultra JIS", Family: 0, Style: draw2d.FontStyleNormal}, font)
 	gc.SetFontData(draw2d.FontData{Name: "Arphic Roman-Mincho Ultra JIS", Style: draw2d.FontStyleNormal})
 
-	//设置清晰度
+	//Set DPI
 	if captcha.Dpi <= 0 {
 		captcha.Dpi = defaultDpi
 	}
 	gc.SetDPI(captcha.Dpi)
 
-	// 设置字体大小
+	// Set font size
 	if captcha.FontSize <= 0 {
 		captcha.FontSize = defaultFontSize
 	}

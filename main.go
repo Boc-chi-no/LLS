@@ -18,6 +18,7 @@ func main() {
 	statikFS.InitFont()
 	statikFS.InitUap()
 	statikFS.InitIPData()
+	statikFS.InitI18n()
 
 	db.InitDB()
 	db.InitModel()

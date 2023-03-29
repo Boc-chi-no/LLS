@@ -54,7 +54,7 @@ func (m *MongoPool) Init(connects []MongoConnect) {
 	}
 }
 
-// AddConnect 添加连接
+// AddConnect Add a connection
 func (m *MongoPool) AddConnect(connect MongoConnect) {
 	configLock.Lock()
 	defer configLock.Unlock()
@@ -89,7 +89,7 @@ func (m *MongoPool) AddConnect(connect MongoConnect) {
 	}
 }
 
-// AddConnects 添加多个连接
+// AddConnects Adding multiple connections
 func (m *MongoPool) AddConnects(connects []MongoConnect) {
 	for _, c := range connects {
 		m.AddConnect(c)
@@ -144,11 +144,10 @@ type poolDB struct {
 	dbInfo  *DatabaseInfo
 }
 
-// 全局实现者
 var pool MongoPooler
 var poolLock sync.Mutex
 
-// NewPools 初始化多数据库连接
+// NewPools Initialising multiple database connections
 func NewPools(configs []MongoConnect) MongoPooler {
 	poolLock.Lock()
 	defer poolLock.Unlock()
@@ -159,7 +158,7 @@ func NewPools(configs []MongoConnect) MongoPooler {
 	return pool
 }
 
-// NewPool 初始化数据库连接
+// NewPool Initialising database connections
 //func NewPool(config MongoConnect) MongoPooler {
 //	poolLock.Lock()
 //	defer poolLock.Unlock()

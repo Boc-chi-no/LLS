@@ -1,0 +1,12 @@
+{
+  "deserializationFailed": "Failed to deserialize data!",
+  "noLinkFound": "No matching links found.",
+  "saveSessionFailed": "Failed to save session data.",
+  "imageGenerationFailed": "Failed to generate image.",
+  "tooManyRequests": "Too many requests. Please try again later.",
+  "captchaVerificationFailed": "Failed to verify captcha.",
+  "passwordVerificationFailed": "Failed to verify link password.",
+  "databaseOperationFailed": "Failed to complete database operation.",
+  "invalidUrl": "Invalid URL. Please check your input and try again.",
+  "invalidPaginationParameter": "Invalid pagination parameter. Please check your input and try again."
+}

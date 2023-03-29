@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"linkshortener/db"
+	"linkshortener/i18n"
 	"linkshortener/log"
 	"linkshortener/model"
 	"linkshortener/setting"
@@ -17,21 +18,22 @@ import (
 // http://localhost:8040/api/delete_link
 func DeleteLink(c *gin.Context) {
 	var req model.ManageLinkReq
+	localizer := i18n.GetLocalizer(c)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, "序列化失败", "")
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("deserializationFailed", nil), "")
 		log.ErrorPrint("Deserialization failed: %s", err)
 		return
 	}
 
-	// 初始化session对象
+	// Initialize session object
 	session := sessions.Default(c)
 	sessionCaptcha := session.Get("captcha")
 	session.Delete("captcha")
 	_ = session.Save()
 
 	if sessionCaptcha != req.CAPTCHA {
-		model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, "验证码检验失败!", "")
+		model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, localizer.GetMessage("captchaVerificationFailed", nil), "")
 		return
 	}
 
@@ -41,7 +43,7 @@ func DeleteLink(c *gin.Context) {
 
 	if res != nil && len(res) > 0 {
 		if res[0].Token != req.Token {
-			model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, "链接密码检验失败!", "")
+			model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, localizer.GetMessage("passwordVerificationFailed", nil), "")
 			return
 		}
 		_, err := table.UpdateByID(req.Hash, bson.M{
@@ -51,12 +53,12 @@ func DeleteLink(c *gin.Context) {
 		})
 
 		if err != nil {
-			model.FailureResponse(c, http.StatusInternalServerError, http.StatusInternalServerError, "数据库操作失败!", "")
+			model.FailureResponse(c, http.StatusInternalServerError, http.StatusInternalServerError, localizer.GetMessage("databaseOperationFailed", nil), "")
 			return
 		}
 		model.SuccessResponse(c, nil)
 	} else {
-		model.FailureResponse(c, 404, 404, "未找到查询的链接!", "")
+		model.FailureResponse(c, 404, 404, localizer.GetMessage("noLinkFound", nil), "")
 	}
 
 }

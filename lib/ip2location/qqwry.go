@@ -11,39 +11,40 @@ import (
 )
 
 const (
-	// IndexLen 索引长度
+	// IndexLen Index length
 	IndexLen = 7
-	// RedirectMode1 国家的类型, 指向另一个指向
+	// RedirectMode1 Type of country, pointing to another point
 	RedirectMode1 = 0x01
-	// RedirectMode2 国家的类型, 指向一个指向
+	// RedirectMode2 Type of country, pointing to a point
 	RedirectMode2 = 0x02
 )
 
 type fileData struct {
-	Data     []byte
-	IPNum    int64
+	Data  []byte
+	IPNum int64
 }
 
-// QQwry 纯真ip库
+// QQwry ip library
+// TODO:Replacement required
 type QQwry struct {
 	Data   *fileData
 	Offset int64
 }
 
-// IPData IP库的数据
+// IPData Data from the IP library
 var IPData fileData
 
-// InitIPData 初始化ip库数据到内存中
+// InitIPData Initialise ip library data into memory
 func (f *fileData) InitIPData(data []byte) (rs interface{}) {
 	var (
 		tmpData []byte
-		err error
+		err     error
 	)
 	log.InfoPrint("Get Online IP Location...")
 	tmpData, err = GetOnline()
 	if err != nil {
 		tmpData = data
-		log.WarnPrint("Get Online IP Location failed: %s",err)
+		log.WarnPrint("Get Online IP Location failed: %s", err)
 	}
 	f.Data = tmpData
 
@@ -56,14 +57,14 @@ func (f *fileData) InitIPData(data []byte) (rs interface{}) {
 	return true
 }
 
-// NewQQwry 新建 qqwry  类型
+// NewQQwry New qqwry type
 func NewQQwry() QQwry {
 	return QQwry{
 		Data: &IPData,
 	}
 }
 
-// ReadData 从文件中读取数据
+// ReadData Reading data from a file
 func (q *QQwry) ReadData(num int, offset ...int64) (rs []byte) {
 	if len(offset) > 0 {
 		q.SetOffset(offset[0])
@@ -83,12 +84,12 @@ func (q *QQwry) ReadData(num int, offset ...int64) (rs []byte) {
 	return
 }
 
-// SetOffset 设置偏移量
+// SetOffset Set the offset
 func (q *QQwry) SetOffset(offset int64) {
 	q.Offset = offset
 }
 
-// Find ip地址查询对应归属地信息
+// Find ip address search corresponding to attribution information
 func (q *QQwry) Find(ip string) (res model.Location) {
 
 	res = model.Location{}
@@ -133,13 +134,13 @@ func (q *QQwry) Find(ip string) (res model.Location) {
 	return
 }
 
-// readMode 获取偏移值类型
+// readMode Get offset value type
 func (q *QQwry) readMode(offset uint32) byte {
 	mode := q.ReadData(1, int64(offset))
 	return mode[0]
 }
 
-// readArea 读取区域
+// readArea Reading area
 func (q *QQwry) readArea(offset uint32) []byte {
 	mode := q.readMode(offset)
 	if mode == RedirectMode1 || mode == RedirectMode2 {
@@ -152,7 +153,7 @@ func (q *QQwry) readArea(offset uint32) []byte {
 	return q.readString(offset)
 }
 
-// readString 获取字符串
+// readString Get String
 func (q *QQwry) readString(offset uint32) []byte {
 	q.SetOffset(int64(offset))
 	data := make([]byte, 0, 30)
@@ -167,7 +168,7 @@ func (q *QQwry) readString(offset uint32) []byte {
 	return data
 }
 
-// searchIndex 查找索引位置
+// searchIndex Find an index location
 func (q *QQwry) searchIndex(ip uint32) uint32 {
 	header := q.ReadData(8, 0)
 
@@ -192,10 +193,10 @@ func (q *QQwry) searchIndex(ip uint32) uint32 {
 			return 0
 		}
 
-		// 找到的比较大，向前移
+		// Found larger, moving forward
 		if _ip > ip {
 			end = mid
-		} else if _ip < ip { // 找到的比较小，向后移
+		} else if _ip < ip { // Found smaller, moving backwards
 			start = mid
 		} else if _ip == ip {
 			return byteToUInt32(buf[4:])
@@ -215,7 +216,7 @@ func (q *QQwry) getMiddleOffset(start uint32, end uint32) uint32 {
 	return start + records*IndexLen
 }
 
-// byteToUInt32 将 byte 转换为uint32
+// byteToUInt32 Converts byte to uint32
 func byteToUInt32(data []byte) uint32 {
 	i := uint32(data[0]) & 0xff
 	i |= (uint32(data[1]) << 8) & 0xff00

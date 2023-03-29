@@ -4,6 +4,7 @@ import (
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/rakyll/statik/fs"
+	"linkshortener/i18n"
 	"linkshortener/lib/ip2location"
 	"linkshortener/lib/uap"
 	"linkshortener/log"
@@ -51,4 +52,20 @@ func InitIPData() {
 	}
 
 	ip2location.IPData.InitIPData(ipDataBytes)
+}
+
+func InitI18n() {
+	jpBytes, err := fs.ReadFile(StatikFS, "/resources/lang/ja-JP.json")
+	if err != nil {
+		log.PanicPrint("Loading embedded language pack(ja-JP) exception: %s", err)
+	}
+	cnBytes, err := fs.ReadFile(StatikFS, "/resources/lang/zh-CN.json")
+	if err != nil {
+		log.PanicPrint("Loading embedded language pack(zh-CN) exception: %s", err)
+	}
+	usBytes, err := fs.ReadFile(StatikFS, "/resources/lang/en-US.json")
+	if err != nil {
+		log.PanicPrint("Loading embedded language pack(en-US) exception: %s", err)
+	}
+	i18n.InitI18n(jpBytes, cnBytes, usBytes)
 }

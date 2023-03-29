@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"image/png"
+	"linkshortener/i18n"
 	"linkshortener/lib/captcha"
 	"linkshortener/log"
 	"linkshortener/model"
@@ -18,29 +19,30 @@ import (
 // Usage:
 // generate captcha, just http GET to http://localhost:8040/api/captcha
 func Captcha(c *gin.Context) {
-	// 初始化session对象
+	localizer := i18n.GetLocalizer(c)
+	// Initialize session object
 	session := sessions.Default(c)
 	cp := captcha.NewCaptcha(120, 40, 4)
-	cp.SetMode(1) // 设置为数学公式模式
+	cp.SetMode(1) // Set to maths mode
 	code, img := cp.OutPut()
 
-	// 设置session数据
+	// Setting session data
 	session.Set("captcha", code)
 	session.Options(sessions.Options{
-		MaxAge:  300,
+		MaxAge: 300,
 	})
 	err := session.Save()
 	if err != nil {
-		model.FailureResponse(c,http.StatusInternalServerError,http.StatusInternalServerError,"保存session失败","")
-		log.ErrorPrint("session save failed: %s",err)
+		model.FailureResponse(c, http.StatusInternalServerError, http.StatusInternalServerError, localizer.GetMessage("saveSessionFailed", nil), "")
+		log.ErrorPrint("session save failed: %s", err)
 		return
 	}
 
 	buf := new(bytes.Buffer)
 	err = png.Encode(buf, img)
 	if err != nil {
-		model.FailureResponse(c,http.StatusInternalServerError,http.StatusInternalServerError,"图片生成失败","")
-		log.ErrorPrint("captcha image generation failed: %s",err)
+		model.FailureResponse(c, http.StatusInternalServerError, http.StatusInternalServerError, localizer.GetMessage("imageGenerationFailed", nil), "")
+		log.ErrorPrint("captcha image generation failed: %s", err)
 		return
 	}
 
@@ -53,5 +55,5 @@ func Captcha(c *gin.Context) {
 	}
 
 	c.Header("Cache-Control", "no-store")
-	model.SuccessResponse(c,data)
+	model.SuccessResponse(c, data)
 }

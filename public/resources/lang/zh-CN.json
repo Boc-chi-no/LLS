@@ -1,0 +1,12 @@
+{
+  "deserializationFailed": "序列化失败!",
+  "noLinkFound": "未找到查询的链接!",
+  "saveSessionFailed": "保存session失败!",
+  "imageGenerationFailed": "图片生成失败!",
+  "tooManyRequests": "请求过于频繁!",
+  "captchaVerificationFailed": "验证码检验失败!",
+  "passwordVerificationFailed": "链接密码检验失败!",
+  "databaseOperationFailed": "数据库操作失败!",
+  "invalidUrl": "非法的URL!",
+  "invalidPaginationParameter": "错误的分页参数!"
+}
