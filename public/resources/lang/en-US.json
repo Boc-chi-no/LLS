@@ -8,5 +8,6 @@
   "passwordVerificationFailed": "Failed to verify link password.",
   "databaseOperationFailed": "Failed to complete database operation.",
   "invalidUrl": "Invalid URL. Please check your input and try again.",
-  "invalidPaginationParameter": "Invalid pagination parameter. Please check your input and try again."
+  "invalidPaginationParameter": "Invalid pagination parameter. Please check your input and try again.",
+  "linkPasswordError": "Invalid Password."
 }

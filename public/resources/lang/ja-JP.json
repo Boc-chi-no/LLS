@@ -8,5 +8,6 @@
   "passwordVerificationFailed": "リンクのパスワードの検証に失敗しました。",
   "databaseOperationFailed": "データベース操作に失敗しました。",
   "invalidUrl": "URLが無効です。入力内容を確認してからもう一度お試しください。",
-  "invalidPaginationParameter": "ページネーションのパラメータが無効です。入力内容を確認してからもう一度お試しください。"
+  "invalidPaginationParameter": "ページネーションのパラメータが無効です。入力内容を確認してからもう一度お試しください。",
+  "linkPasswordError": "リンクアクセス時のパスワードが違う！"
 }

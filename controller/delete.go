@@ -58,7 +58,7 @@ func DeleteLink(c *gin.Context) {
 		}
 		model.SuccessResponse(c, nil)
 	} else {
-		model.FailureResponse(c, 404, 404, localizer.GetMessage("noLinkFound", nil), "")
+		model.FailureResponse(c, http.StatusNotFound, http.StatusNotFound, localizer.GetMessage("noLinkFound", nil), "")
 	}
 
 }

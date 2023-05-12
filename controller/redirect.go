@@ -1,11 +1,14 @@
 package controller
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"linkshortener/db"
 	"linkshortener/i18n"
 	"linkshortener/lib/ip2location"
+	"linkshortener/lib/tool"
 	"linkshortener/lib/uap"
 	"linkshortener/log"
 	"linkshortener/model"
@@ -21,7 +24,13 @@ func Redirect(c *gin.Context) {
 	req := model.RedirectLinkReq{}
 	localizer := i18n.GetLocalizer(c)
 
-	if err := c.BindUri(&req); err != nil {
+	if err := c.ShouldBindUri(&req); err != nil {
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("deserializationFailed", nil), "")
+		log.ErrorPrint("Deserialization failed: %s", err)
+		return
+	}
+
+	if err := c.ShouldBindQuery(&req); err != nil {
 		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("deserializationFailed", nil), "")
 		log.ErrorPrint("Deserialization failed: %s", err)
 		return
@@ -31,12 +40,43 @@ func Redirect(c *gin.Context) {
 	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
 	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}, {Key: "delete", Value: false}}, &res)
 
-	if res != nil && len(res) > 0 {
-		go accessLogWorker(c.ClientIP(), req.Hash, c.Request.Header, time.Now().Unix())
-		log.DebugPrint("RedirectLink: %s", res[0].URL)
-		c.Redirect(http.StatusTemporaryRedirect, res[0].URL)
+	if res != nil && len(res) == 1 {
+		link := res[0]
+		reqPassword := ""
+		if link.Password != "" {
+			if req.Password != "" {
+				passwordHash := sha1.Sum([]byte(tool.ConcatStrings(link.ShortHash, req.Password, tool.Uint32ToBase62String(setting.Cfg.Seed))))
+				reqPassword = hex.EncodeToString(passwordHash[:])
+			}
+
+			if link.Password != reqPassword {
+				log.InfoPrint("password error: %s", req.Hash)
+				if req.Detect {
+					model.FailureResponse(c, http.StatusUnauthorized, http.StatusUnauthorized, localizer.GetMessage("linkPasswordError", nil), "")
+					return
+				} else {
+					c.Redirect(http.StatusTemporaryRedirect, tool.ConcatStrings("/#/PasswordRedirect/", req.Hash))
+					return
+				}
+			}
+		} else if req.Soft {
+			c.Redirect(http.StatusTemporaryRedirect, tool.ConcatStrings("/#/SoftRedirect/", req.Hash))
+			return
+		}
+
+		if req.Detect {
+			data := map[string]interface{}{
+				"hash": link.ShortHash,
+				"url":  link.URL,
+			}
+			model.SuccessResponse(c, data)
+		} else {
+			go accessLogWorker(c.ClientIP(), req.Hash, c.Request.Header, time.Now().Unix())
+			log.DebugPrint("RedirectLink: %s", link.URL)
+			c.Redirect(http.StatusTemporaryRedirect, link.URL)
+		}
 	} else {
-		model.FailureResponse(c, 404, 404, localizer.GetMessage("noLinkFound", nil), "")
+		model.FailureResponse(c, http.StatusNotFound, http.StatusNotFound, localizer.GetMessage("noLinkFound", nil), "")
 	}
 }
 

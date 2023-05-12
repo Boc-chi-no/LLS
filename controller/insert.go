@@ -54,11 +54,11 @@ func GenerateLink(c *gin.Context) {
 	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
 	res, _ := table.InsertOne(link)
 	if res == nil {
-		model.FailureResponse(c, 500, 500, localizer.GetMessage("databaseOperationFailed", nil), "")
+		model.FailureResponse(c, http.StatusInternalServerError, http.StatusInternalServerError, localizer.GetMessage("databaseOperationFailed", nil), "")
 		return
 	}
 
-	log.DebugPrint("SrcLink: %s, GenerateShortenLink: http://%s/s/%s", req.URL, setting.Cfg.HTTP.Listen, res.InsertedID)
+	log.DebugPrint("SrcLink: %s, GenerateShortenLink: /s/%s", req.URL, res.InsertedID)
 
 	data := map[string]interface{}{
 		"hash":  link.ShortHash,

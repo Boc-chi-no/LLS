@@ -68,7 +68,8 @@ func (captcha *Captcha) getRandCode() string {
 		captcha.CodeLen = defaultLen
 	}
 
-	return tool.GetToken(captcha.CodeLen)
+	token, _ := tool.GetToken(captcha.CodeLen)
+	return token
 }
 
 // getFormulaMixData returns a tuple with an arithmetic operation string and an array of strings containing the operands and the operator

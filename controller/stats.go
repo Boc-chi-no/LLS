@@ -85,6 +85,6 @@ func StatsLink(c *gin.Context) {
 		}
 
 	} else {
-		model.FailureResponse(c, 404, 404, localizer.GetMessage("noLinkFound", nil), "")
+		model.FailureResponse(c, http.StatusNotFound, http.StatusNotFound, localizer.GetMessage("noLinkFound", nil), "")
 	}
 }

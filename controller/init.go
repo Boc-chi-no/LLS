@@ -108,7 +108,7 @@ func InitController() {
 		router.Use(NewLimiter(rate.Limit(setting.Cfg.HTTPLimiter.LimitRate), setting.Cfg.HTTPLimiter.LimitBurst, time.Duration(setting.Cfg.HTTPLimiter.Timeout)*time.Millisecond))
 	}
 
-	SessionSecret := tool.GetToken(16)
+	SessionSecret, _ := tool.GetToken(16)
 	if !setting.Cfg.HTTP.RandomSessionSecret {
 		SessionSecret = setting.Cfg.HTTP.SessionSecret
 	}

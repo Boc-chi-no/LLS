@@ -4,6 +4,7 @@ import "os"
 
 type Config struct {
 	RunMode string `ini:"RUN_MODE"`
+	Seed    uint32 `ini:"GENERATE_SEED"`
 
 	LOG         LOGConfig         `ini:"log"`
 	I18N        I18NConfig        `ini:"i18n"`
