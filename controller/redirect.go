@@ -50,7 +50,9 @@ func Redirect(c *gin.Context) {
 			}
 
 			if link.Password != reqPassword {
-				log.InfoPrint("password error: %s", req.Hash)
+				if reqPassword != "" {
+					log.InfoPrint("password error: %s", req.Hash)
+				}
 				if req.Detect {
 					model.FailureResponse(c, http.StatusUnauthorized, http.StatusUnauthorized, localizer.GetMessage("linkPasswordError", nil), "")
 					return
