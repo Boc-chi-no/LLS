@@ -27,14 +27,16 @@
 /.idea
 
 # Config
+/mongo-init.js
 /app.ini
 
 # local
 /logs/*
 /db-data/*
-/public/*
 
+# resources
+/resources/ui/*
+!/resources/ui/LICENSE
 
 # Go statik
-!/public/resources
 /statik/statik.go

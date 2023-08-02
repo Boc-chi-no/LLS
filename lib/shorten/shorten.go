@@ -18,7 +18,7 @@ func GenerateShortenLink(req model.InsertLinkReq) model.Link {
 	nanoSecStr := strconv.FormatInt(now.UnixNano(), 16)
 
 	count := tool.GlobalCounterSafeAdd(1)
-	countStr := strconv.FormatInt(count, 16)
+	countStr := strconv.FormatUint(count, 16)
 
 	murmurHash := murmur3.Sum32WithSeed([]byte(tool.ConcatStrings(req.URL, ":", nanoSecStr, ":", countStr)), setting.Cfg.Seed)
 	hex62Hash := tool.Uint32ToBase62String(murmurHash)

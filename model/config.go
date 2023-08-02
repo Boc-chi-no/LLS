@@ -25,11 +25,11 @@ type I18NConfig struct {
 }
 
 type HTTPConfig struct {
-	Listen              string `ini:"LISTEN"`
-	RandomSessionSecret bool   `ini:"RANDOM_SESSION_SECRET"`
-	SessionSecret       string `ini:"SESSION_SECRET"`
-	FilesDirEmbed       bool   `ini:"STATIC_FILES_DIR_EMBED"`
-	FilesDirURI         string `ini:"STATIC_FILES_DIR_URI"`
+	Listen               string `ini:"LISTEN"`
+	RandomSessionSecret  bool   `ini:"RANDOM_SESSION_SECRET"`
+	SessionSecret        string `ini:"SESSION_SECRET"`
+	DisableFilesDirEmbed bool   `ini:"DISABLE_STATIC_FILES_DIR_EMBED"`
+	FilesDirURI          string `ini:"STATIC_FILES_DIR_URI"`
 }
 
 type HTTPLimiterConfig struct {

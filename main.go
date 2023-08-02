@@ -1,4 +1,4 @@
-//go:generate statik -f -src=./public
+//go:generate statik -f -src=./resources
 //go:generate go fmt statik/statik.go
 
 package main

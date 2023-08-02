@@ -61,7 +61,7 @@ func TestGenerateShortenLink(t *testing.T) {
 		patchTimeTime := monkey.Patch(time.Now, func() time.Time { return mockTime })
 		defer patchTimeTime.Unpatch()
 
-		patchToolGlobalCounterSafeAdd := monkey.Patch(tool.GlobalCounterSafeAdd, func(int64) int64 { return int64(100000) })
+		patchToolGlobalCounterSafeAdd := monkey.Patch(tool.GlobalCounterSafeAdd, func(uint64) uint64 { return uint64(100000) })
 		defer patchToolGlobalCounterSafeAdd.Unpatch()
 
 		patchToolGetToken := monkey.Patch(tool.GetToken, func(int2 int) (string, error) { return "TestToken0000", nil })

@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -21,7 +22,7 @@ var Base62Map = []string{
 	"Y", "Z",
 }
 
-var GlobalCounter int64
+var GlobalCounter atomic.Uint64
 
 func Time() int {
 	cur := time.Now()
@@ -121,6 +122,16 @@ func GetToken(length int) (string, error) {
 	return token.String(), nil
 }
 
-func GlobalCounterSafeAdd(delta int64) int64 {
-	return atomic.AddInt64(&GlobalCounter, delta)
+func GlobalCounterSafeAdd(delta uint64) uint64 {
+	return GlobalCounter.Add(delta)
+}
+
+func HTTPAddPrefix(prefix string, h http.Handler) http.Handler {
+	if prefix == "" {
+		return h
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = ConcatStrings(prefix, r.URL.Path)
+		h.ServeHTTP(w, r)
+	})
 }

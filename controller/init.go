@@ -8,12 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
 	"linkshortener/i18n"
+	"linkshortener/lib/lfs"
 	"linkshortener/lib/tool"
 	"linkshortener/log"
 	"linkshortener/model"
 	"linkshortener/setting"
 	"linkshortener/statikFS"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -62,10 +64,22 @@ func InitRouter() {
 	router.POST("/api/stats_link", StatsLink)       //Link statistics
 	router.POST("/api/delete_link", DeleteLink)     //Delete link
 
-	if setting.Cfg.HTTP.FilesDirEmbed { //Static files
-		router.NoRoute(gin.WrapH(http.FileServer(statikFS.StatikFS))) //Use of embedded resources
+	if setting.Cfg.HTTP.DisableFilesDirEmbed { //Static files
+		if strings.Join(strings.Fields(setting.Cfg.HTTP.FilesDirURI), "") != "" {
+			router.NoRoute(gin.WrapH(http.FileServer(
+				lfs.LlsFileSystem{
+					Fs: http.Dir(setting.Cfg.HTTP.FilesDirURI), //Use of external resources
+				},
+			)))
+		} else {
+			log.PanicPrint("STATIC_FILES_DIR_URI not allowed to be empty")
+		}
 	} else {
-		router.NoRoute(gin.WrapH(http.FileServer(http.Dir(setting.Cfg.HTTP.FilesDirURI)))) //Use of external resources
+		router.NoRoute(gin.WrapH(tool.HTTPAddPrefix("/ui", http.FileServer(
+			lfs.LlsFileSystem{
+				Fs: statikFS.StatikFS, //Use of embedded resources
+			},
+		))))
 	}
 }
 

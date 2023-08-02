@@ -24,7 +24,7 @@ func InitFs() {
 }
 
 func InitFont() {
-	fontBytes, err := fs.ReadFile(StatikFS, "/resources/arphic.ttf")
+	fontBytes, err := fs.ReadFile(StatikFS, "/statik/arphic.ttf")
 
 	if err != nil {
 		log.PanicPrint("Init Font failed", err)
@@ -37,7 +37,7 @@ func InitFont() {
 }
 
 func InitUap() {
-	uapBytes, err := fs.ReadFile(StatikFS, "/resources/uaparser.yaml")
+	uapBytes, err := fs.ReadFile(StatikFS, "/statik/uaparser.yaml")
 	if err != nil {
 		log.PanicPrint("Init UAInfo failed", err)
 	}
@@ -46,7 +46,7 @@ func InitUap() {
 }
 
 func InitIPData() {
-	ipDataBytes, err := fs.ReadFile(StatikFS, "/resources/qqwry.dat")
+	ipDataBytes, err := fs.ReadFile(StatikFS, "/statik/qqwry.dat")
 	if err != nil {
 		log.PanicPrint("Init IPData failed", err)
 	}
@@ -55,15 +55,15 @@ func InitIPData() {
 }
 
 func InitI18n() {
-	jpBytes, err := fs.ReadFile(StatikFS, "/resources/lang/ja-JP.json")
+	jpBytes, err := fs.ReadFile(StatikFS, "/statik/lang/ja-JP.json")
 	if err != nil {
 		log.PanicPrint("Loading embedded language pack(ja-JP) exception: %s", err)
 	}
-	cnBytes, err := fs.ReadFile(StatikFS, "/resources/lang/zh-CN.json")
+	cnBytes, err := fs.ReadFile(StatikFS, "/statik/lang/zh-CN.json")
 	if err != nil {
 		log.PanicPrint("Loading embedded language pack(zh-CN) exception: %s", err)
 	}
-	usBytes, err := fs.ReadFile(StatikFS, "/resources/lang/en-US.json")
+	usBytes, err := fs.ReadFile(StatikFS, "/statik/lang/en-US.json")
 	if err != nil {
 		log.PanicPrint("Loading embedded language pack(en-US) exception: %s", err)
 	}

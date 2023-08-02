@@ -17,7 +17,7 @@ services:
     environment:
       MONGO_INITDB_DATABASE: "shortener"
     volumes:
-      - ./db/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - ./db-data:/data/db
     ports:
       - '27117:27017'
