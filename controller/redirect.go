@@ -65,15 +65,15 @@ func Redirect(c *gin.Context) {
 			c.Redirect(http.StatusTemporaryRedirect, tool.ConcatStrings("/#/SoftRedirect/", req.Hash))
 			return
 		}
-
+		go accessLogWorker(c.ClientIP(), req.Hash, c.Request.Header, time.Now().Unix())
 		if req.Detect {
+			log.DebugPrint("DetectLink: %s", link.URL)
 			data := map[string]interface{}{
 				"hash": link.ShortHash,
 				"url":  link.URL,
 			}
 			model.SuccessResponse(c, data)
 		} else {
-			go accessLogWorker(c.ClientIP(), req.Hash, c.Request.Header, time.Now().Unix())
 			log.DebugPrint("RedirectLink: %s", link.URL)
 			c.Redirect(http.StatusTemporaryRedirect, link.URL)
 		}

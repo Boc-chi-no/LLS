@@ -35,10 +35,10 @@ func StatsLink(c *gin.Context) {
 	// Initialize session object
 	session := sessions.Default(c)
 	sessionCaptcha := session.Get("captcha")
-	session.Delete("captcha")
-	_ = session.Save()
 
 	if sessionCaptcha != req.CAPTCHA {
+		session.Delete("captcha")
+		_ = session.Save()
 		model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, localizer.GetMessage("captchaVerificationFailed", nil), "")
 		return
 	}
@@ -49,6 +49,8 @@ func StatsLink(c *gin.Context) {
 
 	if res != nil && len(res) > 0 {
 		if res[0].Token != req.Token {
+			session.Delete("captcha")
+			_ = session.Save()
 			model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, localizer.GetMessage("passwordVerificationFailed", nil), "")
 			return
 		}
@@ -85,6 +87,8 @@ func StatsLink(c *gin.Context) {
 		}
 
 	} else {
+		session.Delete("captcha")
+		_ = session.Save()
 		model.FailureResponse(c, http.StatusNotFound, http.StatusNotFound, localizer.GetMessage("noLinkFound", nil), "")
 	}
 }
