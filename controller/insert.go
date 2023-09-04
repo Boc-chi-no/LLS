@@ -16,7 +16,7 @@ import (
 // GenerateLink This method saves the redirection into the mongo database.
 //
 // Usage:
-// To shorten a URL, just http POST to http://localhost:8040/api/generate_link with the following json payload (example):
+// To shorten a URL, just http POST to {BasePath}/api/generate_link with the following json payload (example):
 //
 //	{
 //	   "src_url": "http://localhost:8040/",
@@ -58,7 +58,7 @@ func GenerateLink(c *gin.Context) {
 		return
 	}
 
-	log.DebugPrint("SrcLink: %s, GenerateShortenLink: /s/%s", req.URL, res.InsertedID)
+	log.DebugPrint("SrcLink: %s, GenerateShortenLink: %s/s/%s", req.URL, setting.Cfg.HTTP.BasePath, res.InsertedID)
 
 	data := map[string]interface{}{
 		"hash":  link.ShortHash,

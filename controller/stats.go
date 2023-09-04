@@ -16,7 +16,7 @@ import (
 
 // StatsLink This method provides statistics info for redirections
 // Usage:
-// http://localhost:8040/api/stats_link
+// {BasePath}/api/stats_link
 func StatsLink(c *gin.Context) {
 	var req model.ManageLinkReq
 	localizer := i18n.GetLocalizer(c)

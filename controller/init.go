@@ -51,18 +51,30 @@ func ReqLogger() gin.HandlerFunc {
 }
 
 func InitRouter() {
-	router.GET("ping", func(c *gin.Context) {
+	BasePath := strings.TrimPrefix(strings.TrimSuffix(strings.Join(strings.Fields(setting.Cfg.HTTP.BasePath), ""), "/"), "/")
+	if BasePath != "" {
+		BasePath = tool.ConcatStrings("/", BasePath)
+	}
+	SoftRedirectBasePath := strings.TrimPrefix(strings.TrimSuffix(strings.Join(strings.Fields(setting.Cfg.HTTP.SoftRedirectBasePath), ""), "/"), "/")
+	if SoftRedirectBasePath != "" {
+		SoftRedirectBasePath = tool.ConcatStrings("/", SoftRedirectBasePath)
+	}
+
+	setting.Cfg.HTTP.BasePath = BasePath
+	setting.Cfg.HTTP.SoftRedirectBasePath = SoftRedirectBasePath
+
+	router.GET(tool.ConcatStrings(BasePath, "/ping"), func(c *gin.Context) {
 		model.SuccessResponse(c, map[string]interface{}{
 			"msg": "pong",
 		})
 	}) //Service Test Interface
 
-	router.GET("/s/:hash", Redirect) //Short link redirection
+	router.GET(tool.ConcatStrings(BasePath, "/s/:hash"), Redirect) //Short link redirection
 
-	router.GET("/api/captcha", Captcha)             //Generate captcha code
-	router.POST("/api/generate_link", GenerateLink) //Create link
-	router.POST("/api/stats_link", StatsLink)       //Link statistics
-	router.POST("/api/delete_link", DeleteLink)     //Delete link
+	router.GET(tool.ConcatStrings(BasePath, "/api/captcha"), Captcha)             //Generate captcha code
+	router.POST(tool.ConcatStrings(BasePath, "/api/generate_link"), GenerateLink) //Create link
+	router.POST(tool.ConcatStrings(BasePath, "/api/stats_link"), StatsLink)       //Link statistics
+	router.POST(tool.ConcatStrings(BasePath, "/api/delete_link"), DeleteLink)     //Delete link
 
 	if setting.Cfg.HTTP.DisableFilesDirEmbed { //Static files
 		if strings.Join(strings.Fields(setting.Cfg.HTTP.FilesDirURI), "") != "" {

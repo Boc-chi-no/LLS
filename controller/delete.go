@@ -15,7 +15,7 @@ import (
 // DeleteLink This method deletes the redirection
 // Usage:
 // Send a http POST call to
-// http://localhost:8040/api/delete_link
+// {BasePath}/api/delete_link
 func DeleteLink(c *gin.Context) {
 	var req model.ManageLinkReq
 	localizer := i18n.GetLocalizer(c)

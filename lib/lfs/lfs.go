@@ -2,8 +2,8 @@ package lfs
 
 import (
 	"linkshortener/lib/tool"
-	"linkshortener/setting"
 	"net/http"
+	"strings"
 )
 
 type LlsFileSystem struct {
@@ -22,14 +22,7 @@ func (lfs LlsFileSystem) Open(name string) (http.File, error) {
 	}
 
 	if s.IsDir() {
-		var indexName string
-		if setting.Cfg.HTTP.DisableFilesDirEmbed {
-			indexName = "index.html"
-		} else {
-			indexName = "/index.html"
-		}
-
-		index := tool.ConcatStrings(name, indexName)
+		index := tool.ConcatStrings(strings.TrimSuffix(name, "/"), "/index.html")
 		if _, err := lfs.Fs.Open(index); err != nil {
 			closeErr := f.Close()
 			if closeErr != nil {

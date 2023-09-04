@@ -19,7 +19,7 @@ import (
 
 // Redirect This method performs the redirection of the shortened link.
 // Usage:
-// Just hit http://localhost:8040/s/4nGHqG ( use the generated hash )
+// Just hit {BasePath}/s/4nGHqG ( use the generated hash )
 func Redirect(c *gin.Context) {
 	req := model.RedirectLinkReq{}
 	localizer := i18n.GetLocalizer(c)
@@ -57,12 +57,12 @@ func Redirect(c *gin.Context) {
 					model.FailureResponse(c, http.StatusUnauthorized, http.StatusUnauthorized, localizer.GetMessage("linkPasswordError", nil), "")
 					return
 				} else {
-					c.Redirect(http.StatusTemporaryRedirect, tool.ConcatStrings("/#/PasswordRedirect/", req.Hash))
+					c.Redirect(http.StatusTemporaryRedirect, tool.ConcatStrings(setting.Cfg.HTTP.SoftRedirectBasePath, "/#/PasswordRedirect/", req.Hash))
 					return
 				}
 			}
 		} else if req.Soft {
-			c.Redirect(http.StatusTemporaryRedirect, tool.ConcatStrings("/#/SoftRedirect/", req.Hash))
+			c.Redirect(http.StatusTemporaryRedirect, tool.ConcatStrings(setting.Cfg.HTTP.SoftRedirectBasePath, "/#/SoftRedirect/", req.Hash))
 			return
 		}
 		go accessLogWorker(c.ClientIP(), req.Hash, c.Request.Header, time.Now().Unix())

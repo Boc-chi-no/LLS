@@ -60,7 +60,7 @@ This file is a Go code file generated automatically by the Statik tool, which is
 
 ## API Instructions
 ### Captcha
-To perform a create/manage operation you need to create Captcha first, just http GET to `http://localhost:8040/api/captcha`, The API will return the following:
+To perform a create/manage operation you need to create Captcha first, just http GET to `{BasePath}/api/captcha`, The API will return the following:
 ```json5
 {
   "code":0,
@@ -79,7 +79,7 @@ Then, a Base64-encoded challenge image and a cookie identifying the Session are 
 
 ### Generate
 
-To shorten a URL, just http POST to `http://localhost:8040/api/generate_link` with the following json payload (example):
+To shorten a URL, just http POST to `{BasePath}/api/generate_link` with the following json payload (example):
 
 ```json5
 {
@@ -110,22 +110,22 @@ The token is your subsequent credentials for managing the link, and the hash is 
 
 ### Redirect
 
-just HTTP GET request to `http://localhost:8040/s/:hash`. This action will lead you to the original URL that was shortened. Here's an example:
+just HTTP GET request to `{BasePath}/s/:hash`. This action will lead you to the original URL that was shortened. Here's an example:
 
-`http://localhost:8040/s/18nfqL?...Parameters`
+`{BasePath}/s/18nfqL?...Parameters`
 
 The redirection supports the following parameters:
 
 | Parameter | Description |
 | --------- | ----------- |
-| `pwd`     | This is the password required for accessing the shortened URL. If an incorrect or empty password is provided, you will be redirected to `/#/PasswordRedirect/:hash` |
-| `soft`    | This parameter indicates whether a soft redirect is required. If used, you will be redirected to `/#/SoftRedirect/:hash` |
+| `pwd`     | This is the password required for accessing the shortened URL. If an incorrect or empty password is provided, you will be redirected to `{SoftRedirectBasePath}/#/PasswordRedirect/:hash` |
+| `soft`    | This parameter indicates whether a soft redirect is required. If used, you will be redirected to `{SoftRedirectBasePath}/#/SoftRedirect/:hash` |
 | `detect`  | This parameter activates the Detect mode. Instead of a redirection, data will be returned in JSON format |
 
 
-If an incorrect or empty password is provided for a password-protected shortened URL, you will be redirected to `/#/PasswordRedirect/:hash`. The front-end will handle the subsequent logic.
+If an incorrect or empty password is provided for a password-protected shortened URL, you will be redirected to `{SoftRedirectBasePath}/#/PasswordRedirect/:hash`. The front-end will handle the subsequent logic.
 
-If the `soft` parameter is used, you will be redirected to `/#/SoftRedirect/:hash`.
+If the `soft` parameter is used, you will be redirected to `{SoftRedirectBasePath}/#/SoftRedirect/:hash`.
 
 If the `detect` parameter is used, the API will return the following JSON data:
 
@@ -146,7 +146,7 @@ If the `detect` parameter is used, the API will return the following JSON data:
 In this mode, no redirection will occur. Instead, the data will be returned in JSON format.
 ### Statistics
 
-The application will record the visit and write it to the database, just http POST to `http://localhost:8040/api/stats_link` with the following json payload (example):
+The application will record the visit and write it to the database, just http POST to `{BasePath}/api/stats_link` with the following json payload (example):
 
 ```json5
 {
@@ -197,7 +197,7 @@ The api will return the following:
 It will show detailed data about the URL accessed.
 
 ### Delete
-If the link needs to be removed, just http POST to `http://localhost:8040/api/delete_link` with the following json payload (example):
+If the link needs to be removed, just http POST to `{BasePath}/api/delete_link` with the following json payload (example):
 
 ```json5
 {

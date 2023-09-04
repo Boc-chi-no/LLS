@@ -26,6 +26,8 @@ type I18NConfig struct {
 
 type HTTPConfig struct {
 	Listen               string `ini:"LISTEN"`
+	BasePath             string `ini:"BASE_PATH"`
+	SoftRedirectBasePath string `ini:"SOFT_REDIRECT_BASE_PATH"`
 	RandomSessionSecret  bool   `ini:"RANDOM_SESSION_SECRET"`
 	SessionSecret        string `ini:"SESSION_SECRET"`
 	DisableFilesDirEmbed bool   `ini:"DISABLE_STATIC_FILES_DIR_EMBED"`

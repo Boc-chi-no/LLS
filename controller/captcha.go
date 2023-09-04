@@ -17,7 +17,7 @@ import (
 // Captcha This method generate captcha.
 //
 // Usage:
-// generate captcha, just http GET to http://localhost:8040/api/captcha
+// generate captcha, just http GET to {BasePath}/api/captcha
 func Captcha(c *gin.Context) {
 	localizer := i18n.GetLocalizer(c)
 	// Initialize session object
