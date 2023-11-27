@@ -116,10 +116,11 @@ func NewLimiter(reqRate rate.Limit, reqBurst int, reqTimeout time.Duration) gin.
 }
 
 func InitController() {
-
 	if setting.Cfg.RunMode == "dev" {
 		gin.SetMode(gin.DebugMode)
 	} else {
+		gin.DefaultWriter = log.NullOut
+		gin.DefaultErrorWriter = log.NullOut
 		gin.SetMode(gin.ReleaseMode)
 	}
 

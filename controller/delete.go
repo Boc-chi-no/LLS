@@ -39,14 +39,14 @@ func DeleteLink(c *gin.Context) {
 
 	var res []model.Link
 	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
-	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}, {Key: "delete", Value: false}}, &res)
+	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}, {Key: "delete", Value: false}}, &res, db.Find().SetKey(req.Hash))
 
 	if res != nil && len(res) > 0 {
 		if res[0].Token != req.Token {
 			model.FailureResponse(c, http.StatusForbidden, http.StatusForbidden, localizer.GetMessage("passwordVerificationFailed", nil), "")
 			return
 		}
-		_, err := table.UpdateByID(req.Hash, bson.M{
+		err := table.UpdateByID(req.Hash, bson.M{
 			"$set": bson.M{
 				"delete": true,
 			},

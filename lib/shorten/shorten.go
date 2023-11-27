@@ -1,7 +1,7 @@
 package shorten
 
 import (
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"github.com/spaolacci/murmur3"
 	"linkshortener/lib/tool"
@@ -28,8 +28,10 @@ func GenerateShortenLink(req model.InsertLinkReq) model.Link {
 	link.Token, _ = tool.GetToken(16)
 	link.ShortHash = hex62Hash
 	link.URL = req.URL
+	link.Memo = req.MEMO
+	link.Expire = req.EXPIRE
 	if req.PASSWORD != "" {
-		passwordHash := sha1.Sum([]byte(tool.ConcatStrings(link.ShortHash, req.PASSWORD, tool.Uint32ToBase62String(setting.Cfg.Seed))))
+		passwordHash := sha256.Sum256([]byte(tool.ConcatStrings(link.ShortHash, req.PASSWORD, tool.Uint32ToBase62String(setting.Cfg.Seed))))
 		link.Password = hex.EncodeToString(passwordHash[:])
 	}
 	link.Delete = false

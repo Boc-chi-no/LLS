@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -10,30 +11,30 @@ import (
 	"time"
 )
 
-type MongoDB struct {
+type LlsMongoDB struct {
 	DatabaseName string
 	ConnectName  string
 	dbPool       MongoPooler
 }
 
 // SetPool Setting up a connection pool
-func (db *MongoDB) SetPool(pool MongoPooler) *MongoDB {
+func (db *LlsMongoDB) SetPool(pool MongoPooler) *LlsMongoDB {
 	db.dbPool = pool
 	return db
 }
 
 // SetDB Set the connection name and database name
-func (db *MongoDB) SetDB(connectName, databaseName string) *MongoDB {
+func (db *LlsMongoDB) SetDB(connectName, databaseName string) *LlsMongoDB {
 	db.ConnectName = connectName
 	db.DatabaseName = databaseName
 	return db
 }
 
 // CreateConnectFunc Create a connection
-type CreateConnectFunc func(*MongoDB) []MongoConnect
+type CreateConnectFunc func(*LlsMongoDB) []MongoConnect
 
-func NewDB() *MongoDB {
-
+func NewMongoDB() *LlsMongoDB {
+	log.InfoPrint("Using the MongoDB as a data source")
 	var mongoHosts []MongoHost
 	if setting.Cfg.MongoDB.Cluster {
 		for _, v := range setting.Cfg.MongoDB.IPs {
@@ -64,46 +65,34 @@ func NewDB() *MongoDB {
 		MaxPoolSize:     setting.Cfg.MongoDB.MaxPoolSize,
 		MaxConnIdleTime: setting.Cfg.MongoDB.MaxConnIdleTime,
 	})
-	var db MongoDB
+	var db LlsMongoDB
 	return db.SetPool(NewPools(configs))
 }
 
-type Tabler interface {
-	SetDB(db *MongoDB)
-	InsertOne(document interface{}) (*mongo.InsertOneResult, error)
-	UpdateOne(filter interface{}, result interface{}) (*mongo.UpdateResult, error)
-	UpdateByID(id interface{}, result interface{}) (*mongo.UpdateResult, error)
-	FindByID(id interface{}, result interface{}) error
-	FindOne(filter interface{}, result interface{}) error
-	Find(filter interface{}, result interface{}, opts ...*options.FindOptions) error
-	CreateOneIndex(index mongo.IndexModel, opts ...*options.CreateIndexesOptions) error
-	CountDocuments(filter interface{}) (int64, error)
-}
-
-type Table struct {
+type MongoDBTable struct {
 	tableName string
-	db        *MongoDB
+	db        *LlsMongoDB
 }
 
-// NewTable Initialization table
-func NewTable(db *MongoDB, tableName string) Tabler {
-	var table = &Table{}
+// NewMongoDBTable Initialization table
+func NewMongoDBTable(db *LlsMongoDB, tableName string) Tabler {
+	var table = &MongoDBTable{}
 	table.tableName = tableName
 	table.SetDB(db)
 	table.CreateCollection()
 	return table
 }
 
-// SetTable Setting table
-func SetTable(db *MongoDB, tableName string) Tabler {
-	var table = &Table{}
+// SetMongoDBTable Setting table
+func SetMongoDBTable(db *LlsMongoDB, tableName string) Tabler {
+	var table = &MongoDBTable{}
 	table.tableName = tableName
 	table.SetDB(db)
 	return table
 }
 
 // CreateCollection Create a collection
-func (t *Table) CreateCollection() {
+func (t *MongoDBTable) CreateCollection() {
 	db := t.getDB()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
 	defer func() {
@@ -128,16 +117,19 @@ func (t *Table) CreateCollection() {
 }
 
 // SetDB Setting up the database
-func (t *Table) SetDB(db *MongoDB) {
-	t.db = db
+func (t *MongoDBTable) SetDB(db interface{}) {
+	mongoDB, ok := db.(*LlsMongoDB)
+	if ok {
+		t.db = mongoDB
+	}
 }
 
 // getDB
-func (t *Table) getDB() *DatabaseInfo {
+func (t *MongoDBTable) getDB() *DatabaseInfo {
 	return t.db.dbPool.GetDB(t.db.ConnectName)
 }
 
-func (t *Table) CountDocuments(filter interface{}) (int64, error) {
+func (t *MongoDBTable) CountDocuments(filter interface{}, _ *FindOptions) (int64, error) {
 	db := t.getDB()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
 	defer func() {
@@ -151,47 +143,47 @@ func (t *Table) CountDocuments(filter interface{}) (int64, error) {
 	return count, err
 }
 
-func (t *Table) InsertOne(document interface{}) (*mongo.InsertOneResult, error) {
+func (t *MongoDBTable) InsertOne(document interface{}, _ string, _ bool) error {
 	db := t.getDB()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
 	defer func() {
 		cancel()
 	}()
-	res, err := db.Database.Collection(t.tableName).InsertOne(ctx, document)
+	_, err := db.Database.Collection(t.tableName).InsertOne(ctx, document)
 	if err != nil {
 		log.ErrorPrint("mongo InsertOne error %v", err)
 	}
 
-	return res, err
+	return err
 }
 
-func (t *Table) UpdateOne(filter interface{}, update interface{}) (*mongo.UpdateResult, error) {
+func (t *MongoDBTable) UpdateOne(filter interface{}, update interface{}) error {
 	db := t.getDB()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
 	defer func() {
 		cancel()
 	}()
-	res, err := db.Database.Collection(t.tableName).UpdateOne(ctx, filter, update)
+	_, err := db.Database.Collection(t.tableName).UpdateOne(ctx, filter, update)
 	if err != nil {
 		log.ErrorPrint("mongo UpdateOne error %v", err)
 	}
-	return res, err
+	return err
 }
 
-func (t *Table) UpdateByID(id interface{}, update interface{}) (*mongo.UpdateResult, error) {
+func (t *MongoDBTable) UpdateByID(id string, update interface{}) error {
 	db := t.getDB()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
 	defer func() {
 		cancel()
 	}()
-	res, err := db.Database.Collection(t.tableName).UpdateByID(ctx, id, update)
+	_, err := db.Database.Collection(t.tableName).UpdateByID(ctx, id, update)
 	if err != nil {
 		log.ErrorPrint("mongo UpdateByID error %v", err)
 	}
-	return res, err
+	return err
 }
 
-func (t *Table) FindOne(filter interface{}, result interface{}) error {
+func (t *MongoDBTable) FindOne(filter interface{}, result interface{}) error {
 	db := t.getDB()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
 	defer func() {
@@ -204,7 +196,7 @@ func (t *Table) FindOne(filter interface{}, result interface{}) error {
 	return err
 }
 
-func (t *Table) FindByID(id interface{}, result interface{}) error {
+func (t *MongoDBTable) FindByID(id interface{}, result interface{}) error {
 	db := t.getDB()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
 	defer func() {
@@ -228,13 +220,13 @@ func (t *Table) FindByID(id interface{}, result interface{}) error {
 	return err
 }
 
-func (t *Table) Find(filter interface{}, result interface{}, opts ...*options.FindOptions) error {
+func (t *MongoDBTable) Find(filter interface{}, result interface{}, opt *FindOptions) error {
 	db := t.getDB()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
 	defer func() {
 		cancel()
 	}()
-	cur, err := db.Database.Collection(t.tableName).Find(ctx, filter, opts...)
+	cur, err := db.Database.Collection(t.tableName).Find(ctx, filter, options.Find().SetSkip(opt.Skip).SetLimit(opt.Limit).SetMin(opt.Min).SetMax(opt.Max))
 	if err != nil {
 		log.ErrorPrint("mongo Find error %v", err)
 		return err
@@ -250,30 +242,25 @@ func (t *Table) Find(filter interface{}, result interface{}, opts ...*options.Fi
 	return err
 }
 
-func (t *Table) CreateOneIndex(index mongo.IndexModel, opts ...*options.CreateIndexesOptions) error {
-	db := t.getDB()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
-	defer func() {
-		cancel()
-	}()
-	_, err := db.Database.Collection(t.tableName).Indexes().CreateOne(ctx, index, opts...)
-	if err != nil {
-		log.ErrorPrint("mongo CreateOneIndex error %v", err)
+func (t *MongoDBTable) CreateOneIndex(indexInterface interface{}, opts ...interface{}) error {
+	var createIndexesOptionsSlice []*options.CreateIndexesOptions
+
+	for _, opt := range opts {
+		if findOpt, ok := opt.(*options.CreateIndexesOptions); ok {
+			createIndexesOptionsSlice = append(createIndexesOptionsSlice, findOpt)
+		}
 	}
-	return err
-}
-
-func NewModel(dbName, tableName string) Tabler {
-	return NewTable(db.SetDB(dbName, dbName), tableName)
-}
-
-func SetModel(dbName, tableName string) Tabler {
-	return SetTable(db.SetDB(dbName, dbName), tableName)
-}
-
-var db *MongoDB
-
-func InitDB() {
-	db = NewDB()
-
+	if index, ok := indexInterface.(mongo.IndexModel); ok {
+		db := t.getDB()
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
+		defer func() {
+			cancel()
+		}()
+		_, err := db.Database.Collection(t.tableName).Indexes().CreateOne(ctx, index, createIndexesOptionsSlice...)
+		if err != nil {
+			log.ErrorPrint("mongo CreateOneIndex error %v", err)
+		}
+		return err
+	}
+	return fmt.Errorf("failed to type assertion failed: CreateOneIndex")
 }

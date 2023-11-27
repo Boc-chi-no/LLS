@@ -10,6 +10,7 @@ services:
       - './:/go/src/app'
     depends_on:
       - 'mongols'
+    restart: unless-stopped
   mongols:
     image: 'mongo:6.0.4'
     container_name: 'mongols'

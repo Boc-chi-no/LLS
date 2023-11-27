@@ -9,5 +9,8 @@
   "databaseOperationFailed": "Failed to complete database operation.",
   "invalidUrl": "Invalid URL. Please check your input and try again.",
   "invalidPaginationParameter": "Invalid pagination parameter. Please check your input and try again.",
-  "linkPasswordError": "Invalid Password."
+  "linkPasswordError": "Invalid Password.",
+  "illegalExpirationTime": "Illegal Expiration Time.",
+  "linkExpire": "Link has expired!",
+  "detectAndSoftMutuallyExclusive": "The detect parameter and the soft parameter cannot be used at the same time.!"
 }

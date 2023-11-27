@@ -58,6 +58,59 @@ This folder stores resource files that the server needs, such as images and font
 This file is a Go code file generated automatically by the Statik tool, which is used to embed all files under the /resources/ directory into Go code so that they can be accessed as static files.
 
 
+## Configuration File
+
+This file provides various settings for the LLS Server.
+
+Please be aware that LLS will read the `app.ini` file located in the working directory as its configuration file. If this file is not present, the program will automatically generate it upon startup.
+
+### General Settings:
+- **`GENERATE_SEED`**: Seed for generating random values.
+
+### Logging Settings:
+- **`DEBUG`**: Toggle to print debug logs (`true` or `false`).
+
+### Internationalization Settings:
+- **`ADD_EXTRA_LANGUAGE`**: Add extra languages (`true` or `false`).
+- **`EXTRA_LANGUAGE_NAME`**: Additional language using BCP 47 Code.
+- **`EXTRA_LANGUAGE_FILES`**: Path to the language resource file.
+
+### HTTP Server Settings:
+- **`LISTEN`**: Server's listening address.
+- **`BASE_PATH`**: Base URL path for LLS.
+- **`SOFT_REDIRECT_BASE_PATH`**: URL path for Soft Redirects.
+- **`RANDOM_SESSION_SECRET`**: Generate a random session secret (`true` or `false`).
+- **`SESSION_SECRET`**: Set session secret (used if `RANDOM_SESSION_SECRET` is `false`).
+- **`DISABLE_STATIC_FILES_DIR_EMBED`**: Disable embedded static files (`true` or `false`).
+- **`STATIC_FILES_DIR_URI`**: Directory for external static files (used if `DISABLE_STATIC_FILES_DIR_EMBED` is `true`).
+
+### HTTP Rate Limiter Settings:
+- **`ENABLE_LIMITER`**: Enable the rate limiter (`true` or `false`).
+- **`LIMIT_RATE`**: Max requests per second.
+- **`LIMIT_BURST`**: Max concurrent requests.
+- **`TIMEOUT`**: Request timeout (in milliseconds).
+
+### DB Settings:
+- **`TYPE`**: Type of database (`BadgerDB` or `MongoDB`).
+
+### BadgerDB Settings (used if `DB.TYPE` is `BadgerDB`):
+- **`WITH_IN_MEMORY`**: Use memory mode for BadgerDB (`true` or `false`).
+- **`PATH`**: BadgerDB storage location (used if `WITH_IN_MEMORY` is `false`).
+
+### MongoDB Database Settings (used if `DB.TYPE` is `MongoDB`):
+- **`CLUSTER`**: Use MongoDB in cluster mode (`true` or `false`).
+- **`IP`**: MongoDB server address.
+- **`IPS`**: Replica set IPs (used if `CLUSTER` is `true`).
+- **`PORT`**: Server's port.
+- **`USER`**: Server's user.
+- **`PASSWORD`**: Server's password (keep confidential).
+- **`DATABASE`**: Name of the connected database.
+- **`CONNECT_TIMEOUT`**: Connection timeout (in seconds).
+- **`EXECUTE_TIMEOUT`**: Execution timeout (in seconds).
+- **`MIN_POOL_SIZE`**: Minimum size for the connection pool.
+- **`MAX_POOL_SIZE`**: Maximum size for the connection pool.
+- **`MAX_CONN_IDLE_TIME`**: Connection idle timeout (in minutes).
+
 ## API Instructions
 ### Captcha
 To perform a create/manage operation you need to create Captcha first, just http GET to `{BasePath}/api/captcha`, The API will return the following:
@@ -85,7 +138,9 @@ To shorten a URL, just http POST to `{BasePath}/api/generate_link` with the foll
 {
   "link":"http://127.0.0.1:8040/", //Original URL
   "captcha":"8", //Captcha answer
-  "pwd": "" //Shortened Access Password
+  "pwd": "", //Shortened Access Password
+  "expire": 1696982400, //Link Expire Time (Second Timestamp)
+  "memo": "memo" //Link Memo
 }
 ```
 
@@ -125,7 +180,7 @@ The redirection supports the following parameters:
 
 If an incorrect or empty password is provided for a password-protected shortened URL, you will be redirected to `{SoftRedirectBasePath}/#/PasswordRedirect/:hash`. The front-end will handle the subsequent logic.
 
-If the `soft` parameter is used, you will be redirected to `{SoftRedirectBasePath}/#/SoftRedirect/:hash`.
+If the `soft` parameter is used, you will be redirected to `{SoftRedirectBasePath}/#/SoftRedirect/:hash`. The front-end will handle the subsequent logic.
 
 If the `detect` parameter is used, the API will return the following JSON data:
 
@@ -135,6 +190,8 @@ If the `detect` parameter is used, the API will return the following JSON data:
   "data":{
     "hash":"18nfqL", //shortened URL Hash
     "url":"http://127.0.0.1:8040/", //Original URL
+    "expire": 1696982400, //Link Expire Time (Second Timestamp)
+    "memo": "memo" //Link Memo
   },
   "detail":"",
   "fail":false,

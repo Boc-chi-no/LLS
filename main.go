@@ -6,6 +6,7 @@ package main
 import (
 	"linkshortener/controller"
 	"linkshortener/db"
+	"linkshortener/log"
 	"linkshortener/setting"
 	_ "linkshortener/statik"
 	"linkshortener/statikFS"
@@ -14,6 +15,7 @@ import (
 
 func main() {
 	setting.InitSetting()
+	log.InitLog()
 	statikFS.InitFs()
 	statikFS.InitFont()
 	statikFS.InitUap()

@@ -4,7 +4,6 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"linkshortener/db"
 	"linkshortener/i18n"
 	"linkshortener/log"
@@ -45,7 +44,7 @@ func StatsLink(c *gin.Context) {
 
 	var res []model.Link
 	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
-	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}}, &res)
+	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}}, &res, db.Find().SetKey(req.Hash))
 
 	if res != nil && len(res) > 0 {
 		if res[0].Token != req.Token {
@@ -59,11 +58,11 @@ func StatsLink(c *gin.Context) {
 		statsTable := db.SetModel(setting.Cfg.MongoDB.Database, "link_access")
 
 		offset := (req.Page - 1) * req.Size
-		totalCount, _ := statsTable.CountDocuments(bson.D{{Key: "hash", Value: req.Hash}})
+		totalCount, _ := statsTable.CountDocuments(bson.D{{Key: "hash", Value: req.Hash}}, db.Find().SetKey(req.Hash))
 		totalPages := int64(math.Ceil(float64(totalCount) / float64(req.Size)))
 
 		if totalCount > 0 && req.Page <= totalPages {
-			_ = statsTable.Find(bson.D{{Key: "hash", Value: req.Hash}}, &statsRes, options.Find().SetSkip(offset).SetLimit(req.Size))
+			_ = statsTable.Find(bson.D{{Key: "hash", Value: req.Hash}}, &statsRes, db.Find().SetSkip(offset).SetLimit(req.Size).SetKey(req.Hash).SetPrefixScans(true))
 
 			data := map[string]interface{}{
 				"current": req.Page,

@@ -10,6 +10,8 @@ type Config struct {
 	I18N        I18NConfig        `ini:"i18n"`
 	HTTP        HTTPConfig        `ini:"http"`
 	HTTPLimiter HTTPLimiterConfig `ini:"http_limiter"`
+	DB          DBConfig          `ini:"db"`
+	BadgerDB    BadgerDBConfig    `ini:"badgerdb"`
 	MongoDB     MongoDBConfig     `ini:"mongodb"`
 }
 
@@ -39,6 +41,15 @@ type HTTPLimiterConfig struct {
 	LimitRate     int  `ini:"LIMIT_RATE"`
 	LimitBurst    int  `ini:"LIMIT_BURST"`
 	Timeout       int  `ini:"TIMEOUT"`
+}
+
+type DBConfig struct {
+	Type string `ini:"TYPE"`
+}
+
+type BadgerDBConfig struct {
+	WithInMemory bool   `ini:"WITH_IN_MEMORY"`
+	Path         string `ini:"PATH"`
 }
 
 type MongoDBConfig struct {

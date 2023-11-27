@@ -9,5 +9,8 @@
   "databaseOperationFailed": "データベース操作に失敗しました。",
   "invalidUrl": "URLが無効です。入力内容を確認してからもう一度お試しください。",
   "invalidPaginationParameter": "ページネーションのパラメータが無効です。入力内容を確認してからもう一度お試しください。",
-  "linkPasswordError": "リンクアクセス時のパスワードが違う！"
+  "linkPasswordError": "リンクアクセス時のパスワードが違う！",
+  "illegalExpirationTime": "リンクの有効期限が不当に長い！",
+  "linkExpire": "リンクの有効期限が切れました！",
+  "detectAndSoftMutuallyExclusive": "detectとsoftは同時に使用できない。"
 }

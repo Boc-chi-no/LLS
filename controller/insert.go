@@ -11,6 +11,7 @@ import (
 	"linkshortener/setting"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // GenerateLink This method saves the redirection into the mongo database.
@@ -25,6 +26,7 @@ import (
 func GenerateLink(c *gin.Context) {
 	var req model.InsertLinkReq
 	localizer := i18n.GetLocalizer(c)
+	now := time.Now().Unix()
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("deserializationFailed", nil), "")
@@ -43,6 +45,11 @@ func GenerateLink(c *gin.Context) {
 		return
 	}
 
+	if req.EXPIRE != 0 && req.EXPIRE < now {
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("illegalExpirationTime", nil), "")
+		return
+	}
+
 	if !strings.HasPrefix(req.URL, "http://") && !strings.HasPrefix(req.URL, "https://") {
 		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("invalidUrl", nil), "")
 		log.WarnPrint("Illegal URL: %s", req.URL)
@@ -52,13 +59,13 @@ func GenerateLink(c *gin.Context) {
 	link := shorten.GenerateShortenLink(req)
 
 	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
-	res, _ := table.InsertOne(link)
-	if res == nil {
+	err := table.InsertOne(link, link.ShortHash, false)
+	if err != nil {
 		model.FailureResponse(c, http.StatusInternalServerError, http.StatusInternalServerError, localizer.GetMessage("databaseOperationFailed", nil), "")
 		return
 	}
 
-	log.DebugPrint("SrcLink: %s, GenerateShortenLink: %s/s/%s", req.URL, setting.Cfg.HTTP.BasePath, res.InsertedID)
+	log.DebugPrint("SrcLink: %s, GenerateShortenLink: %s/s/%s", req.URL, setting.Cfg.HTTP.BasePath, link.ShortHash)
 
 	data := map[string]interface{}{
 		"hash":  link.ShortHash,
