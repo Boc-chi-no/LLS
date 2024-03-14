@@ -115,6 +115,24 @@ func NewLimiter(reqRate rate.Limit, reqBurst int, reqTimeout time.Duration) gin.
 	}
 }
 
+func LooseCORS() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		method := c.Request.Method
+		origin := c.Request.Header.Get("Origin")
+		if origin != "" {
+			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+			c.Header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+			c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
+			c.Header("Access-Control-Allow-Credentials", "true")
+		}
+		if method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+		}
+		c.Next()
+	}
+}
+
 func InitController() {
 	if setting.Cfg.RunMode == "dev" {
 		gin.SetMode(gin.DebugMode)
@@ -126,9 +144,14 @@ func InitController() {
 
 	router = gin.New()
 
+	if setting.Cfg.HTTP.LooseCORS {
+		router.Use(LooseCORS())
+	}
+
 	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
 		log.DebugPrint("%v %v %v %v\n", httpMethod, absolutePath, handlerName, nuHandlers)
 	}
+
 	router.Use(ReqLogger())
 
 	if setting.Cfg.HTTPLimiter.EnableLimiter {

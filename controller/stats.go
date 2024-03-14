@@ -21,7 +21,7 @@ func StatsLink(c *gin.Context) {
 	localizer := i18n.GetLocalizer(c)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("deserializationFailed", nil), "")
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("deserializationFailed", nil), err.Error())
 		log.ErrorPrint("Deserialization failed: %s", err)
 		return
 	}

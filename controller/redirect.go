@@ -14,6 +14,7 @@ import (
 	"linkshortener/model"
 	"linkshortener/setting"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -93,7 +94,11 @@ func Redirect(c *gin.Context) {
 			model.SuccessResponse(c, data)
 		} else {
 			log.DebugPrint("RedirectLink: %s", link.URL)
-			c.Redirect(http.StatusTemporaryRedirect, link.URL)
+			if !strings.HasPrefix(link.URL, "http://") && !strings.HasPrefix(link.URL, "https://") {
+				c.Redirect(http.StatusTemporaryRedirect, tool.ConcatStrings(setting.Cfg.HTTP.SoftRedirectBasePath, "/#/SoftRedirect/", req.Hash))
+			} else {
+				c.Redirect(http.StatusTemporaryRedirect, link.URL)
+			}
 		}
 	} else {
 		if req.Detect {

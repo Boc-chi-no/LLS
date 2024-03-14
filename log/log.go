@@ -24,6 +24,8 @@ func IsDebug() bool {
 func InitLog() {
 	var err error
 	timeStr := tool.Now()
+	Stdout = os.Stdout
+	NullOut, _ = os.OpenFile(os.DevNull, os.O_WRONLY, 0600)
 
 	color.Set(color.FgMagenta)
 	defer color.Unset()
@@ -33,15 +35,12 @@ func InitLog() {
 	logWriter, err = os.OpenFile(path+tool.NowDay()+".log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 
 	if err != nil {
-		fmt.Println("Error opening log file:", err)
-		_, _ = fmt.Fprintf(Stdout, "[PANIC] ["+timeStr+"] Error opening log file: %s", err)
-		_, _ = fmt.Fprintf(Stdout, "[WARN] ["+timeStr+"] Program Exit after 5 Second")
+		_, _ = fmt.Fprintf(Stdout, "[PANIC] ["+timeStr+"] Error opening log file: %s\n", err)
+		_, _ = fmt.Fprintf(Stdout, "[PANIC] ["+timeStr+"] Program Exit after 5 Second\n")
 		time.Sleep(5 * time.Second)
 		os.Exit(0)
 	}
 
-	Stdout = os.Stdout
-	NullOut, _ = os.OpenFile(os.DevNull, os.O_WRONLY, 0600)
 	if setting.Cfg.RunMode != "dev" {
 		os.Stdout = NullOut
 		os.Stderr = NullOut

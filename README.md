@@ -66,6 +66,7 @@ Please be aware that LLS will read the `app.ini` file located in the working dir
 
 ### General Settings:
 - **`GENERATE_SEED`**: Seed for generating random values.
+- **`ALLOW_ALL_PROTOCOL`**: Allow Shortening of non-HTTP protocols.
 
 ### Logging Settings:
 - **`DEBUG`**: Toggle to print debug logs (`true` or `false`).
@@ -83,6 +84,7 @@ Please be aware that LLS will read the `app.ini` file located in the working dir
 - **`SESSION_SECRET`**: Set session secret (used if `RANDOM_SESSION_SECRET` is `false`).
 - **`DISABLE_STATIC_FILES_DIR_EMBED`**: Disable embedded static files (`true` or `false`).
 - **`STATIC_FILES_DIR_URI`**: Directory for external static files (used if `DISABLE_STATIC_FILES_DIR_EMBED` is `true`).
+- **`LOOSE_CORS`**: A lenient CORS (Cross-Origin Resource Sharing) configuration implies relaxed security policies, allowing code from any origin to access the server.
 
 ### HTTP Rate Limiter Settings:
 - **`ENABLE_LIMITER`**: Enable the rate limiter (`true` or `false`).
@@ -181,6 +183,8 @@ The redirection supports the following parameters:
 If an incorrect or empty password is provided for a password-protected shortened URL, you will be redirected to `{SoftRedirectBasePath}/#/PasswordRedirect/:hash`. The front-end will handle the subsequent logic.
 
 If the `soft` parameter is used, you will be redirected to `{SoftRedirectBasePath}/#/SoftRedirect/:hash`. The front-end will handle the subsequent logic.
+
+If the URL is a non-HTTP protocol, soft redirect will be performed.
 
 If the `detect` parameter is used, the API will return the following JSON data:
 

@@ -3,8 +3,9 @@ package model
 import "os"
 
 type Config struct {
-	RunMode string `ini:"RUN_MODE"`
-	Seed    uint32 `ini:"GENERATE_SEED"`
+	RunMode          string `ini:"RUN_MODE"`
+	Seed             uint32 `ini:"GENERATE_SEED"`
+	AllowAllProtocol bool   `ini:"ALLOW_ALL_PROTOCOL"`
 
 	LOG         LOGConfig         `ini:"log"`
 	I18N        I18NConfig        `ini:"i18n"`
@@ -34,6 +35,7 @@ type HTTPConfig struct {
 	SessionSecret        string `ini:"SESSION_SECRET"`
 	DisableFilesDirEmbed bool   `ini:"DISABLE_STATIC_FILES_DIR_EMBED"`
 	FilesDirURI          string `ini:"STATIC_FILES_DIR_URI"`
+	LooseCORS            bool   `ini:"LOOSE_CORS"`
 }
 
 type HTTPLimiterConfig struct {

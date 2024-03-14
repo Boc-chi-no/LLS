@@ -5,7 +5,9 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/goccy/go-json"
+	"golang.org/x/net/idna"
 	"net/http"
+	"net/url"
 	"os"
 	"reflect"
 	"strconv"
@@ -24,7 +26,11 @@ var Base62Map = []string{
 	"Y", "Z",
 }
 
-var GlobalCounter atomic.Uint64
+var (
+	GlobalCounter atomic.Uint64
+	//mu            sync.Mutex
+	//requests      = make(map[string]bool)
+)
 
 func Time() int {
 	cur := time.Now()
@@ -309,3 +315,82 @@ func If(condition bool, trueVal, falseVal interface{}) interface{} {
 	}
 	return falseVal
 }
+
+// EncodeURI encodes a URI string according to RFC 3986, with IDN compatibility.
+func EncodeURI(input string) (*url.URL, error) {
+	// Unescap the URL
+	unescapeURL, err := url.QueryUnescape(input)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the URL
+	parsedURL, err := url.ParseRequestURI(unescapeURL)
+	if err != nil {
+		return nil, err
+	}
+
+	// Encode the host for IDN compatibility
+	if parsedURL.Host != "" {
+		encodedHost, err := idna.ToASCII(parsedURL.Host)
+		if err != nil {
+			return nil, err
+		}
+		parsedURL.Host = encodedHost
+	}
+
+	// Encode the path
+	if parsedURL.Path != "" {
+		encodedPath := url.PathEscape(parsedURL.Path)
+		encodedPath = strings.Replace(encodedPath, "%2F", "/", -1)
+		parsedURL.Path = encodedPath
+	}
+
+	// Encode the fragment
+	if parsedURL.Fragment != "" {
+		encodedFragment := url.PathEscape(parsedURL.Fragment)
+		encodedFragment = strings.Replace(encodedFragment, "%2F", "/", -1)
+		parsedURL.Fragment = encodedFragment
+	}
+
+	// Encode the query
+	if parsedURL.RawQuery != "" {
+		// Define sub-delims
+		subDelims := ";/?:@&=+$,#-.!~*'()"
+
+		encodedQuery := url.QueryEscape(parsedURL.RawQuery)
+		// Space
+		encodedQuery = strings.Replace(encodedQuery, "+", "%20", -1)
+		for _, c := range subDelims {
+			encodedQuery = strings.Replace(encodedQuery, url.QueryEscape(string(c)), string(c), -1)
+		}
+		parsedURL.RawQuery = encodedQuery
+	}
+
+	return parsedURL, nil
+}
+
+//func GetLock(key string) bool {
+//	mu.Lock()
+//	defer mu.Unlock()
+//
+//	if requests[key] {
+//		return false
+//	}
+//
+//	requests[key] = true
+//
+//	time.AfterFunc(120*time.Second, func() {
+//		mu.Lock()
+//		defer mu.Unlock()
+//		delete(requests, key)
+//	})
+//
+//	return true
+//}
+//
+//func ReleaseLock(key string) {
+//	mu.Lock()
+//	defer mu.Unlock()
+//	delete(requests, key)
+//}

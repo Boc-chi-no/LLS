@@ -6,10 +6,12 @@ import (
 	"linkshortener/db"
 	"linkshortener/i18n"
 	"linkshortener/lib/shorten"
+	"linkshortener/lib/tool"
 	"linkshortener/log"
 	"linkshortener/model"
 	"linkshortener/setting"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -29,7 +31,7 @@ func GenerateLink(c *gin.Context) {
 	now := time.Now().Unix()
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("deserializationFailed", nil), "")
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("deserializationFailed", nil), err.Error())
 		log.ErrorPrint("Deserialization failed: %s", err)
 		return
 	}
@@ -45,13 +47,23 @@ func GenerateLink(c *gin.Context) {
 		return
 	}
 
+	parsedURL, err := tool.EncodeURI(req.URL)
+	if err != nil {
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("invalidUrl", nil), "URL Parsed Failed")
+		log.ErrorPrint("URL Parsed failed: %s", err)
+		return
+	}
+
+	req.URL = parsedURL.String()
+	req.MEMO = url.QueryEscape(req.MEMO)
+
 	if req.EXPIRE != 0 && req.EXPIRE < now {
 		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("illegalExpirationTime", nil), "")
 		return
 	}
 
-	if !strings.HasPrefix(req.URL, "http://") && !strings.HasPrefix(req.URL, "https://") {
-		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("invalidUrl", nil), "")
+	if !setting.Cfg.AllowAllProtocol && !strings.HasPrefix(req.URL, "http://") && !strings.HasPrefix(req.URL, "https://") {
+		model.FailureResponse(c, http.StatusBadRequest, http.StatusBadRequest, localizer.GetMessage("invalidUrl", nil), "Not Allowed Protocol")
 		log.WarnPrint("Illegal URL: %s", req.URL)
 		return
 	}
@@ -59,7 +71,7 @@ func GenerateLink(c *gin.Context) {
 	link := shorten.GenerateShortenLink(req)
 
 	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
-	err := table.InsertOne(link, link.ShortHash, false)
+	err = table.InsertOne(link, link.ShortHash, false)
 	if err != nil {
 		model.FailureResponse(c, http.StatusInternalServerError, http.StatusInternalServerError, localizer.GetMessage("databaseOperationFailed", nil), "")
 		return
