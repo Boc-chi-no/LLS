@@ -35,4 +35,4 @@
 /db-data/*
 
 # Go statik
-/statik/statik.go
+/fs/statik.go

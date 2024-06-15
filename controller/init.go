@@ -7,13 +7,13 @@ import (
 	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
+	"linkshortener/fs"
 	"linkshortener/i18n"
 	"linkshortener/lib/lfs"
 	"linkshortener/lib/tool"
 	"linkshortener/log"
 	"linkshortener/model"
 	"linkshortener/setting"
-	"linkshortener/statikFS"
 	"net/http"
 	"strings"
 	"sync"
@@ -89,7 +89,7 @@ func InitRouter() {
 	} else {
 		router.NoRoute(gin.WrapH(tool.HTTPAddPrefix("/ui", http.FileServer(
 			lfs.LlsFileSystem{
-				Fs: statikFS.StatikFS, //Use of embedded resources
+				Fs: fs.StatikFS, //Use of embedded resources
 			},
 		))))
 	}

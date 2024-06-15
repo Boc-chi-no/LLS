@@ -1,26 +1,25 @@
-//go:generate statik -f -src=./resources
-//go:generate go fmt statik/statik.go
+//go:generate statik -f -p=fs -src=./static/
+//go:generate go fmt ./fs/statik.go
 
 package main
 
 import (
 	"linkshortener/controller"
 	"linkshortener/db"
+	"linkshortener/fs"
 	"linkshortener/log"
 	"linkshortener/setting"
-	_ "linkshortener/statik"
-	"linkshortener/statikFS"
 	"time"
 )
 
 func main() {
 	setting.InitSetting()
 	log.InitLog()
-	statikFS.InitFs()
-	statikFS.InitFont()
-	statikFS.InitUap()
-	statikFS.InitIPData()
-	statikFS.InitI18n()
+	fs.InitFs()
+	fs.InitFont()
+	fs.InitUap()
+	fs.InitIPData()
+	fs.InitI18n()
 
 	db.InitDB()
 	db.InitModel()

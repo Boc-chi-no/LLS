@@ -35,8 +35,8 @@
 /db-data/*
 
 # resources
-/resources/ui/*
-!/resources/ui/LICENSE
+/static/ui/*
+!/static/ui/LICENSE
 
 # Go statik
-/statik/statik.go
+/fs/statik.go

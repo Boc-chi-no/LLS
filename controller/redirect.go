@@ -112,8 +112,7 @@ func Redirect(c *gin.Context) {
 }
 
 func accessLogWorker(ip string, hash string, header http.Header, nowTime int64) {
-	qqWry := ip2location.NewQQwry()
-	location := qqWry.Find(ip)
+	location := ip2location.Find(ip)
 	uaInfo := uap.Parse(header)
 
 	var linkInfo = model.LinkInfo{

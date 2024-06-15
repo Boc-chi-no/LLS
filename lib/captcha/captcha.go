@@ -6,9 +6,9 @@ import (
 	"github.com/llgcode/draw2d/draw2dimg"
 	"image"
 	"image/color"
+	"linkshortener/fs"
 	"linkshortener/lib/tool"
 	"linkshortener/log"
-	"linkshortener/statikFS"
 	"math"
 	"math/big"
 	"strconv"
@@ -267,7 +267,7 @@ func (captcha *Captcha) SetFontSize(fontSize float64) {
 
 // setFont Setting the font
 func (captcha *Captcha) setFont(gc *draw2dimg.GraphicContext) {
-	font := statikFS.CaptchaFont
+	font := fs.CaptchaFont
 
 	// Set custom font information
 	gc.FontCache = draw2d.NewSyncFolderFontCache("./arphic.ttf")

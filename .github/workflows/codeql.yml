@@ -63,8 +63,8 @@ jobs:
     - run: |
         go mod tidy
         go install github.com/rakyll/statik
-        /home/runner/go/bin/statik -f -src=./resources
-        go fmt statik/statik.go
+        /home/runner/go/bin/statik -f -p=fs -src=./static/
+        go fmt ./fs/statik.go
         
     # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)

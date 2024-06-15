@@ -8,6 +8,7 @@ type Config struct {
 	AllowAllProtocol bool   `ini:"ALLOW_ALL_PROTOCOL"`
 
 	LOG         LOGConfig         `ini:"log"`
+	GEOIP2      GEOIP2Config      `ini:"geoip2"`
 	I18N        I18NConfig        `ini:"i18n"`
 	HTTP        HTTPConfig        `ini:"http"`
 	HTTPLimiter HTTPLimiterConfig `ini:"http_limiter"`
@@ -19,6 +20,11 @@ type Config struct {
 type LOGConfig struct {
 	Debug bool `ini:"DEBUG"`
 	File  *os.File
+}
+
+type GEOIP2Config struct {
+	GEOIP2Language  string `ini:"LANGUAGE"`
+	UseOnlineGEOIP2 bool   `ini:"USE_ONLINE_GEOIP2"`
 }
 
 type I18NConfig struct {

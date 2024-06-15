@@ -1,0 +1,16 @@
+{
+  "deserializationFailed": "参数验证失败!",
+  "noLinkFound": "未找到查询的链接!",
+  "saveSessionFailed": "保存session失败!",
+  "imageGenerationFailed": "图片生成失败!",
+  "tooManyRequests": "请求过于频繁!",
+  "captchaVerificationFailed": "验证码检验失败!",
+  "passwordVerificationFailed": "链接密码检验失败!",
+  "databaseOperationFailed": "数据库操作失败!",
+  "invalidUrl": "非法的URL!",
+  "invalidPaginationParameter": "错误的分页参数!",
+  "linkPasswordError": "链接访问密码错误!",
+  "illegalExpirationTime": "链接过期时间不合理!",
+  "linkExpire": "链接已过期!",
+  "detectAndSoftMutuallyExclusive": "detect参数和soft参数不能同时使用!"
+}

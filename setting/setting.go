@@ -17,7 +17,7 @@ func InitSetting() {
 
 	if !tool.FileExist("./app.ini") {
 		sfs, _ := fs.New()
-		settingBytes, _ := fs.ReadFile(sfs, "/statik/app.ini")
+		settingBytes, _ := fs.ReadFile(sfs, "/resources/app.ini")
 		w, _ := os.OpenFile("./app.ini", os.O_WRONLY|os.O_CREATE, 0600)
 		_, _ = w.Write(settingBytes)
 		_ = w.Close()
