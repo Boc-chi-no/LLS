@@ -20,8 +20,8 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/ua-parser/uap-go v0.0.0-20211112212520-00c877edfe0f
 	go.mongodb.org/mongo-driver v1.9.1
-	golang.org/x/net v0.23.0
-	golang.org/x/text v0.16.0
+	golang.org/x/net v0.38.0
+	golang.org/x/text v0.23.0
 	golang.org/x/time v0.3.0
 )
 
@@ -67,10 +67,10 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	go.opencensus.io v0.22.5 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/image v0.18.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
