@@ -38,6 +38,11 @@ func Redirect(c *gin.Context) {
 		return
 	}
 
+	if req.Hash == "ping" {
+		Ping(c)
+		return
+	}
+
 	var res []model.Link
 	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
 	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}, {Key: "delete", Value: false}}, &res, db.Find().SetKey(req.Hash))

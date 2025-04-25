@@ -4,8 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"github.com/goccy/go-json"
-	"golang.org/x/net/idna"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,6 +12,10 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/goccy/go-json"
+	"golang.org/x/net/idna"
 )
 
 var Base62Map = []string{
@@ -368,6 +370,19 @@ func EncodeURI(input string) (*url.URL, error) {
 	}
 
 	return parsedURL, nil
+}
+
+func SafeSessionGet(session sessions.Session, key string) interface{} {
+	var value interface{}
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				session.Clear()
+			}
+		}()
+		value = session.Get(key)
+	}()
+	return value
 }
 
 //func GetLock(key string) bool {

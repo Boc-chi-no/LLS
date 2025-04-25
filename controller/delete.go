@@ -1,15 +1,17 @@
 package controller
 
 import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
 	"linkshortener/db"
 	"linkshortener/i18n"
+	"linkshortener/lib/tool"
 	"linkshortener/log"
 	"linkshortener/model"
 	"linkshortener/setting"
 	"net/http"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // DeleteLink This method deletes the redirection
@@ -28,7 +30,7 @@ func DeleteLink(c *gin.Context) {
 
 	// Initialize session object
 	session := sessions.Default(c)
-	sessionCaptcha := session.Get("captcha")
+	sessionCaptcha := tool.SafeSessionGet(session, "captcha")
 	session.Delete("captcha")
 	_ = session.Save()
 

@@ -2,13 +2,15 @@ package log
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"io"
 	"linkshortener/lib/tool"
 	"linkshortener/setting"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 var (
@@ -16,6 +18,68 @@ var (
 	NullOut   *os.File
 	logWriter io.Writer
 )
+
+type SlogToCustomLogger struct{}
+
+func (w *SlogToCustomLogger) Write(p []byte) (n int, err error) {
+	msg := strings.ReplaceAll(string(p), "\n", " ")
+
+	extractedMsg, extractedErr := extractLogParts(msg)
+	if extractedMsg != "" || extractedErr != "" {
+		if extractedErr != "" {
+			InfoPrint("3-Party: %s %s", extractedMsg, extractedErr)
+		} else {
+			InfoPrint("3-Party: %s", extractedMsg)
+		}
+		return len(p), nil
+	}
+
+	msg = strings.Join(strings.Fields(msg), " ")
+	if len(msg) > 100 {
+		msg = msg[:100] + "..."
+	}
+
+	InfoPrint("3-Party: %s", msg)
+	return len(p), nil
+}
+
+func extractLogParts(msg string) (string, string) {
+	prefixes := []string{"time=", "level=", "msg=", "err=", "ERROR", "INFO", "WARN"}
+	extractedMsg := ""
+	extractedErr := ""
+
+	for _, prefix := range prefixes {
+		startIdx := 0
+		for {
+			idx := strings.Index(msg[startIdx:], prefix)
+			if idx == -1 {
+				break
+			}
+
+			idx += startIdx
+			afterPrefix := msg[idx+len(prefix):]
+
+			if strings.HasPrefix(afterPrefix, "\"") {
+				if endQuote := strings.Index(afterPrefix[1:], "\""); endQuote != -1 {
+					content := afterPrefix[1 : endQuote+1]
+					if len(content) > 0 && content != " " {
+						if prefix == "err=" {
+							extractedErr = content
+						} else if prefix == "msg=" {
+							extractedMsg = content + extractedMsg
+						} else {
+							extractedMsg += " " + content
+						}
+					}
+				}
+			}
+
+			startIdx = idx + len(prefix)
+		}
+	}
+
+	return strings.TrimSpace(extractedMsg), extractedErr
+}
 
 func IsDebug() bool {
 	return setting.Cfg.LOG.Debug
@@ -45,6 +109,10 @@ func InitLog() {
 		os.Stdout = NullOut
 		os.Stderr = NullOut
 	}
+
+	customWriter := &SlogToCustomLogger{}
+	customHandler := slog.NewTextHandler(customWriter, nil)
+	slog.SetDefault(slog.New(customHandler))
 }
 
 func Close() {

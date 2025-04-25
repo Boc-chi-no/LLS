@@ -63,11 +63,7 @@ func InitRouter() {
 	setting.Cfg.HTTP.BasePath = BasePath
 	setting.Cfg.HTTP.SoftRedirectBasePath = SoftRedirectBasePath
 
-	router.GET(tool.ConcatStrings(BasePath, "/ping"), func(c *gin.Context) {
-		model.SuccessResponse(c, map[string]interface{}{
-			"msg": "pong",
-		})
-	}) //Service Test Interface
+	router.GET(tool.ConcatStrings(BasePath, "/ping"), Ping) //Service Test Interface
 
 	router.GET(tool.ConcatStrings(BasePath, "/s/:hash"), Redirect) //Short link redirection
 

@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 	"linkshortener/db"
 	"linkshortener/i18n"
 	"linkshortener/lib/shorten"
@@ -14,6 +12,9 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 )
 
 // GenerateLink This method saves the redirection into the mongo database.
@@ -38,7 +39,7 @@ func GenerateLink(c *gin.Context) {
 
 	// Initialize session object
 	session := sessions.Default(c)
-	sessionCaptcha := session.Get("captcha")
+	sessionCaptcha := tool.SafeSessionGet(session, "captcha")
 	session.Delete("captcha")
 	_ = session.Save()
 

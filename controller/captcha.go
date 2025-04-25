@@ -3,15 +3,17 @@ package controller
 import (
 	"bytes"
 	"encoding/base64"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 	"image/png"
 	"linkshortener/i18n"
 	"linkshortener/lib/captcha"
+	"linkshortener/lib/tool"
 	"linkshortener/log"
 	"linkshortener/model"
 	"net/http"
 	"strings"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 )
 
 // Captcha This method generate captcha.
@@ -27,6 +29,7 @@ func Captcha(c *gin.Context) {
 	code, img := cp.OutPut()
 
 	// Setting session data
+	_ = tool.SafeSessionGet(session, "captcha")
 	session.Set("captcha", code)
 	session.Options(sessions.Options{
 		MaxAge: 300,
