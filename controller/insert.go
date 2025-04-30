@@ -71,8 +71,8 @@ func GenerateLink(c *gin.Context) {
 
 	link := shorten.GenerateShortenLink(req)
 
-	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
-	err = table.InsertOne(link, link.ShortHash, false)
+	table := db.SetModel(setting.Cfg.DB.Database, "links")
+	_, err = table.InsertOne(link, false)
 	if err != nil {
 		model.FailureResponse(c, http.StatusInternalServerError, http.StatusInternalServerError, localizer.GetMessage("databaseOperationFailed", nil), "")
 		return

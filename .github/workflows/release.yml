@@ -19,6 +19,7 @@ jobs:
         with:
           fetch-depth: 0
       - run: git fetch --force --tags
+      - run: cp ./gen-release-note.sh /tmp/gen-release-note.sh && chmod +x /tmp/gen-release-note.sh && /tmp/gen-release-note.sh > /tmp/release-note.md
       - uses: actions/setup-go@v4
         with:
           go-version: stable
@@ -29,7 +30,7 @@ jobs:
         with:
           # either 'goreleaser' (default) or 'goreleaser-pro':
           distribution: goreleaser
-          args: release --clean
+          args: release --clean --release-notes=/tmp/release-note.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ github.ref_name }}

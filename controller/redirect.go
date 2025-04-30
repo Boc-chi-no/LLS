@@ -3,8 +3,6 @@ package controller
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
 	"linkshortener/db"
 	"linkshortener/i18n"
 	"linkshortener/lib/ip2location"
@@ -16,6 +14,9 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Redirect This method performs the redirection of the shortened link.
@@ -44,7 +45,7 @@ func Redirect(c *gin.Context) {
 	}
 
 	var res []model.Link
-	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
+	table := db.SetModel(setting.Cfg.DB.Database, "links")
 	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}, {Key: "delete", Value: false}}, &res, db.Find().SetKey(req.Hash))
 
 	if res != nil && len(res) == 1 {
@@ -129,8 +130,8 @@ func accessLogWorker(ip string, hash string, header http.Header, nowTime int64) 
 		Created:  nowTime,
 	}
 
-	table := db.SetModel(setting.Cfg.MongoDB.Database, "link_access")
-	err := table.InsertOne(linkInfo, hash, true)
+	table := db.SetModel(setting.Cfg.DB.Database, "link_access")
+	_, err := table.InsertOne(linkInfo, true)
 	if err != nil {
 		log.WarnPrint("Failed to write access log to database!")
 	}

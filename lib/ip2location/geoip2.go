@@ -1,11 +1,12 @@
 package ip2location
 
 import (
-	"github.com/oschwald/geoip2-golang"
 	"linkshortener/log"
 	"linkshortener/model"
 	"linkshortener/setting"
 	"net"
+
+	"github.com/oschwald/geoip2-golang"
 )
 
 type fileData struct {

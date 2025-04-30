@@ -52,7 +52,8 @@ type HTTPLimiterConfig struct {
 }
 
 type DBConfig struct {
-	Type string `ini:"TYPE"`
+	Type     string `ini:"TYPE"`
+	Database string `ini:"DATABASE"`
 }
 
 type BadgerDBConfig struct {
@@ -67,7 +68,6 @@ type MongoDBConfig struct {
 	Port            string   `ini:"PORT"`
 	User            string   `ini:"USER"`
 	Password        string   `ini:"PASSWORD"`
-	Database        string   `ini:"DATABASE"`
 	ConnectTimeout  int      `ini:"CONNECT_TIMEOUT"`
 	ExecuteTimeout  int      `ini:"EXECUTE_TIMEOUT"`
 	MinPoolSize     int      `ini:"MIN_POOL_SIZE"`

@@ -45,7 +45,7 @@ func StatsLink(c *gin.Context) {
 	}
 
 	var res []model.Link
-	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
+	table := db.SetModel(setting.Cfg.DB.Database, "links")
 	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}}, &res, db.Find().SetKey(req.Hash))
 
 	if res != nil && len(res) > 0 {
@@ -57,7 +57,7 @@ func StatsLink(c *gin.Context) {
 		}
 
 		var statsRes []model.LinkInfo
-		statsTable := db.SetModel(setting.Cfg.MongoDB.Database, "link_access")
+		statsTable := db.SetModel(setting.Cfg.DB.Database, "link_access")
 
 		offset := (req.Page - 1) * req.Size
 		totalCount, _ := statsTable.CountDocuments(bson.D{{Key: "hash", Value: req.Hash}}, db.Find().SetKey(req.Hash))

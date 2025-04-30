@@ -1,14 +1,15 @@
 package fs
 
 import (
-	"github.com/golang/freetype"
-	"github.com/golang/freetype/truetype"
-	"github.com/rakyll/statik/fs"
 	"linkshortener/i18n"
 	"linkshortener/lib/ip2location"
 	"linkshortener/lib/uap"
 	"linkshortener/log"
 	"net/http"
+
+	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
+	"github.com/rakyll/statik/fs"
 )
 
 var StatikFS http.FileSystem

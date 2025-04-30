@@ -2,13 +2,14 @@ package i18n
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"golang.org/x/text/language"
 	"linkshortener/lib/tool"
 	"linkshortener/log"
 	"linkshortener/setting"
 	"os"
+
+	"github.com/gin-gonic/gin"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
 )
 
 var bundle *i18n.Bundle

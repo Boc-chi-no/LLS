@@ -2,12 +2,13 @@ package setting
 
 import (
 	"fmt"
-	"github.com/fatih/color"
-	"github.com/go-ini/ini"
-	"github.com/rakyll/statik/fs"
 	"linkshortener/lib/tool"
 	"linkshortener/model"
 	"os"
+
+	"github.com/fatih/color"
+	"github.com/go-ini/ini"
+	"github.com/rakyll/statik/fs"
 )
 
 var Cfg model.Config

@@ -177,11 +177,11 @@ just HTTP GET request to `{BasePath}/s/:hash`. This action will lead you to the 
 
 The redirection supports the following parameters:
 
-| Parameter | Description |
-| --------- | ----------- |
+| Parameter | Description                                                                                                                                                                               |
+|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `pwd`     | This is the password required for accessing the shortened URL. If an incorrect or empty password is provided, you will be redirected to `{SoftRedirectBasePath}/#/PasswordRedirect/:hash` |
-| `soft`    | This parameter indicates whether a soft redirect is required. If used, you will be redirected to `{SoftRedirectBasePath}/#/SoftRedirect/:hash` |
-| `detect`  | This parameter activates the Detect mode. Instead of a redirection, data will be returned in JSON format |
+| `soft`    | This parameter indicates whether a soft redirect is required. If used, you will be redirected to `{SoftRedirectBasePath}/#/SoftRedirect/:hash`                                            |
+| `detect`  | This parameter activates the Detect mode. Instead of a redirection, data will be returned in JSON format                                                                                  |
 
 
 If an incorrect or empty password is provided for a password-protected shortened URL, you will be redirected to `{SoftRedirectBasePath}/#/PasswordRedirect/:hash`. The front-end will handle the subsequent logic.
@@ -217,7 +217,7 @@ The application will record the visit and write it to the database, just http PO
 {
   "hash": "18nfqL", //shortened URL Hash
   "token": "IKmXKMrVtBOvdibt", //Manage Password
-  "captcha": "25" //Captcha answer
+  "captcha": "25", //Captcha answer
   "page": 1, // Page number of current visit(A positive integer)
   "size": 50 //Size per page(integers from 1-100)
 }

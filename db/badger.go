@@ -1,15 +1,17 @@
 package db
 
 import (
+	"errors"
 	"fmt"
-	"github.com/dgraph-io/badger/v4"
-	"github.com/goccy/go-json"
-	"go.mongodb.org/mongo-driver/bson"
 	"linkshortener/lib/tool"
 	"linkshortener/log"
 	"linkshortener/setting"
 	"strconv"
 	"time"
+
+	"github.com/dgraph-io/badger/v4"
+	"github.com/goccy/go-json"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type LlsBadgerDB struct {
@@ -70,32 +72,44 @@ func (b *BadgerDBTable) getDB() *badger.DB {
 	return b.db.BadgerDB
 }
 
-func (b *BadgerDBTable) InsertOne(document interface{}, key string, autoKey bool) error {
-	key = tool.ConcatStrings(b.tableName, ":", key)
-
-	if autoKey {
-		key = tool.ConcatStrings(key, ":", time.Now().Format("20060102150405"), ":", strconv.FormatUint(tool.GlobalCounterSafeAdd(1), 16))
-	}
-
+func (b *BadgerDBTable) InsertOne(document interface{}, autoKey bool) (interface{}, error) {
+	var key string
 	db := b.getDB()
+	doc := make(map[string]interface{})
 	val, err := tool.MarshalJsonByBson(document)
 	if err != nil {
 		log.ErrorPrint("InsertOne Marshal document error: %v", err)
-		return err
+		return nil, err
 	}
+	_ = json.Unmarshal(val, &doc)
+	if autoKey {
+		id, ok := doc["_id"]
+		if ok && fmt.Sprint(id) != "" {
+			return nil, log.Errorf("_id should not be provided when autoKey is true")
+		}
+		key = tool.ConcatStrings(time.Now().Format("20060102150405"), ":", strconv.FormatUint(tool.GlobalCounterSafeAdd(1), 16))
+		doc["_id"] = key
+		val, _ = json.Marshal(doc)
+	} else {
+		id, ok := doc["_id"]
+		if !ok || fmt.Sprint(id) == "" {
+			return nil, log.Errorf("_id is required when autoKey is false")
+		}
+		key = fmt.Sprint(id)
+	}
+
 	dbErr := db.Update(func(txn *badger.Txn) error {
-		return txn.Set([]byte(key), val)
+		return txn.Set([]byte(tool.ConcatStrings(b.tableName, ":", key)), val)
 	})
 	if dbErr != nil {
 		log.ErrorPrint("InsertOne Update document error: %v", dbErr)
 	}
-	return dbErr
+	return key, dbErr
 }
 
 func (b *BadgerDBTable) UpdateOne(filter interface{}, result interface{}) error {
 	//TODO: implement me
-	log.ErrorPrint("implement UpdateOne")
-	return nil
+	return log.Errorf("implement UpdateOne")
 }
 
 func (b *BadgerDBTable) UpdateByID(id string, update interface{}) error {
@@ -160,23 +174,56 @@ func (b *BadgerDBTable) UpdateByID(id string, update interface{}) error {
 }
 
 func (b *BadgerDBTable) FindByID(id interface{}, result interface{}) error {
-	//TODO: implement me
-	log.ErrorPrint("implement FindByID")
-	return nil
+	if id == nil || id == "" {
+		log.ErrorPrint("BadgerDB requires Key")
+		return fmt.Errorf("BadgerDB requires Key")
+	}
+	db := b.getDB()
+	key := tool.ConcatStrings(b.tableName, ":", fmt.Sprint(id))
+
+	err := db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(key))
+		if err != nil {
+			if errors.Is(err, badger.ErrKeyNotFound) {
+				log.DebugPrint("No document found for id: %v", id)
+				return err //TODO: 统一错误
+			} else {
+				log.ErrorPrint("BadgerDB FindByID error %v", err)
+				return err
+			}
+		}
+
+		return item.Value(func(val []byte) error {
+			return tool.UnmarshalJsonByBson(val, result)
+		})
+
+	})
+
+	if err != nil && !errors.Is(err, badger.ErrKeyNotFound) {
+		log.ErrorPrint("BadgerDB FindByID Error: %s", err)
+	}
+
+	return err
 }
 
 func (b *BadgerDBTable) FindOne(filter interface{}, result interface{}) error {
 	//TODO: implement me
-	log.ErrorPrint("implement FindOne")
-	return nil
+	return log.Errorf("implement FindOne")
 }
 
 func (b *BadgerDBTable) Find(filter interface{}, result interface{}, opt *FindOptions) error {
-	var findFilter map[string]interface{}
+	findFilter := make(map[string]interface{})
 	if filter != nil {
-		findFilterBson, ok := filter.(bson.D)
-		if ok {
-			findFilter = findFilterBson.Map()
+		switch f := filter.(type) {
+		case bson.D:
+			findFilter = make(map[string]interface{}, len(f))
+			for _, elem := range f {
+				findFilter[elem.Key] = elem.Value
+			}
+		case bson.M:
+			findFilter = f
+		default:
+			return log.Errorf("filter must be of type bson.D or bson.M")
 		}
 	}
 
@@ -241,7 +288,8 @@ func (b *BadgerDBTable) Find(filter interface{}, result interface{}, opt *FindOp
 			})
 			return err
 		})
-		if err != nil {
+
+		if err != nil && !errors.Is(err, badger.ErrKeyNotFound) {
 			log.ErrorPrint("BadgerDB Find Error: %s", err)
 		}
 

@@ -2,11 +2,6 @@ package controller
 
 import (
 	"context"
-	"github.com/gin-contrib/pprof"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memstore"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/time/rate"
 	"linkshortener/fs"
 	"linkshortener/i18n"
 	"linkshortener/lib/lfs"
@@ -18,6 +13,12 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gin-contrib/pprof"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/memstore"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
 )
 
 var router *gin.Engine

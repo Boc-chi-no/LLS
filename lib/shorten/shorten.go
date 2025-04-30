@@ -3,12 +3,13 @@ package shorten
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/spaolacci/murmur3"
 	"linkshortener/lib/tool"
 	"linkshortener/model"
 	"linkshortener/setting"
 	"strconv"
 	"time"
+
+	"github.com/spaolacci/murmur3"
 )
 
 // GenerateShortenLink This method generates the hash
@@ -17,10 +18,10 @@ func GenerateShortenLink(req model.InsertLinkReq) model.Link {
 	sec := now.Unix()
 	nanoSecStr := strconv.FormatInt(now.UnixNano(), 16)
 
-	count := tool.GlobalCounterSafeAdd(1)
+	count := tool.GlobalCounterSafeAdd(7777)
 	countStr := strconv.FormatUint(count, 16)
 
-	murmurHash := murmur3.Sum32WithSeed([]byte(tool.ConcatStrings(req.URL, ":", nanoSecStr, ":", countStr)), setting.Cfg.Seed)
+	murmurHash := murmur3.Sum32WithSeed([]byte(tool.ConcatStrings(nanoSecStr, ":", req.URL, ":", countStr)), setting.Cfg.Seed)
 	hex62Hash := tool.Uint32ToBase62String(murmurHash)
 
 	var link model.Link

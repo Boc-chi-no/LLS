@@ -11,11 +11,11 @@ var BadgerDB *LlsBadgerDB
 
 type Tabler interface {
 	SetDB(db interface{})
-	InsertOne(document interface{}, key string, autoKey bool) error
-	UpdateOne(filter interface{}, result interface{}) error
+	InsertOne(document interface{}, autoKey bool) (interface{}, error)
+	UpdateOne(filter interface{}, result interface{}) error //todo: TEST
 	UpdateByID(id string, update interface{}) error
 	FindByID(id interface{}, result interface{}) error
-	FindOne(filter interface{}, result interface{}) error
+	FindOne(filter interface{}, result interface{}) error //todo: TEST
 	Find(filter interface{}, result interface{}, opts *FindOptions) error
 	CreateOneIndex(index interface{}, opts ...interface{}) error
 	CountDocuments(filter interface{}, opt *FindOptions) (int64, error)
@@ -28,6 +28,7 @@ func NewModel(dbName, tableName string) Tabler {
 	case "MONGODB":
 		return NewMongoDBTable(MongoDB.SetDB(dbName, dbName), tableName)
 	default:
+		log.ErrorPrint("Database types are only allowed to be BadgerDB|MongoDB")
 		return nil
 	}
 
@@ -40,6 +41,7 @@ func SetModel(dbName, tableName string) Tabler {
 	case "MONGODB":
 		return SetMongoDBTable(MongoDB.SetDB(dbName, dbName), tableName)
 	default:
+		log.ErrorPrint("Database types are only allowed to be BadgerDB|MongoDB")
 		return nil
 	}
 }

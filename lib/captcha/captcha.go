@@ -2,8 +2,6 @@ package captcha
 
 import (
 	"crypto/rand"
-	"github.com/llgcode/draw2d"
-	"github.com/llgcode/draw2d/draw2dimg"
 	"image"
 	"image/color"
 	"linkshortener/fs"
@@ -12,6 +10,9 @@ import (
 	"math"
 	"math/big"
 	"strconv"
+
+	"github.com/llgcode/draw2d"
+	"github.com/llgcode/draw2d/draw2dimg"
 )
 
 const (

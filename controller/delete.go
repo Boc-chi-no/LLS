@@ -16,7 +16,7 @@ import (
 
 // DeleteLink This method deletes the redirection
 // Usage:
-// Send a http POST call to
+// Send http POST call to
 // {BasePath}/api/delete_link
 func DeleteLink(c *gin.Context) {
 	var req model.ManageLinkReq
@@ -40,7 +40,7 @@ func DeleteLink(c *gin.Context) {
 	}
 
 	var res []model.Link
-	table := db.SetModel(setting.Cfg.MongoDB.Database, "links")
+	table := db.SetModel(setting.Cfg.DB.Database, "links")
 	_ = table.Find(bson.D{{Key: "_id", Value: req.Hash}, {Key: "delete", Value: false}}, &res, db.Find().SetKey(req.Hash))
 
 	if res != nil && len(res) > 0 {

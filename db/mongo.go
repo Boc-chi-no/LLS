@@ -2,13 +2,17 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"linkshortener/lib/tool"
 	"linkshortener/log"
 	"linkshortener/setting"
 	"time"
+
+	"github.com/goccy/go-json"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type LlsMongoDB struct {
@@ -54,8 +58,8 @@ func NewMongoDB() *LlsMongoDB {
 
 	var configs []MongoConnect
 	configs = append(configs, MongoConnect{
-		Name:            setting.Cfg.MongoDB.Database,
-		Database:        setting.Cfg.MongoDB.Database,
+		Name:            setting.Cfg.DB.Database,
+		Database:        setting.Cfg.DB.Database,
 		UserName:        setting.Cfg.MongoDB.User,
 		Password:        setting.Cfg.MongoDB.Password,
 		Hosts:           mongoHosts,
@@ -143,18 +147,35 @@ func (t *MongoDBTable) CountDocuments(filter interface{}, _ *FindOptions) (int64
 	return count, err
 }
 
-func (t *MongoDBTable) InsertOne(document interface{}, _ string, _ bool) error {
+func (t *MongoDBTable) InsertOne(document interface{}, autoKey bool) (interface{}, error) {
 	db := t.getDB()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(db.Config.ExecuteTimeout)*time.Second)
 	defer func() {
 		cancel()
 	}()
-	_, err := db.Database.Collection(t.tableName).InsertOne(ctx, document)
+
+	doc := make(map[string]interface{})
+	documentBson, _ := tool.MarshalJsonByBson(document)
+	_ = json.Unmarshal(documentBson, &doc)
+	id, ok := doc["_id"]
+
+	if autoKey {
+		if ok && fmt.Sprint(id) != "" {
+			return nil, log.Errorf("_id should not be provided when autoKey is true")
+		}
+		delete(doc, "_id")
+		document = doc
+	} else {
+		if !ok || fmt.Sprint(id) == "" {
+			return nil, log.Errorf("_id is required when autoKey is false")
+		}
+	}
+
+	result, err := db.Database.Collection(t.tableName).InsertOne(ctx, document)
 	if err != nil {
 		log.ErrorPrint("mongo InsertOne error %v", err)
 	}
-
-	return err
+	return result.InsertedID, err
 }
 
 func (t *MongoDBTable) UpdateOne(filter interface{}, update interface{}) error {
@@ -202,22 +223,17 @@ func (t *MongoDBTable) FindByID(id interface{}, result interface{}) error {
 	defer func() {
 		cancel()
 	}()
-	cur, err := db.Database.Collection(t.tableName).Find(ctx, bson.D{{Key: "_id", Value: id}})
-
+	err := db.Database.Collection(t.tableName).FindOne(ctx, bson.D{{Key: "_id", Value: id}}).Decode(result)
 	if err != nil {
-		log.ErrorPrint("mongo Find error %v", err)
-		return err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			log.DebugPrint("No document found for id: %v", id)
+			return err //TODO: 统一错误
+		} else {
+			log.ErrorPrint("MongoDB FindByID error %v", err)
+			return err
+		}
 	}
-	defer func(cur *mongo.Cursor, ctx context.Context) {
-		_ = cur.Close(ctx)
-	}(cur, context.Background())
-	err = cur.All(context.Background(), result)
-
-	if err != nil {
-		log.ErrorPrint("mongo Find cur error %v", err)
-	}
-
-	return err
+	return nil
 }
 
 func (t *MongoDBTable) Find(filter interface{}, result interface{}, opt *FindOptions) error {

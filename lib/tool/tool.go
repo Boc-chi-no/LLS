@@ -244,6 +244,9 @@ func unmarshalStructFields(structValue reflect.Value, resultMap map[string]inter
 // MarshalJsonByBson serializes a struct into JSON data based on "bson" tags.
 // It takes a struct and returns the JSON representation as a byte slice.
 func MarshalJsonByBson(i interface{}) ([]byte, error) {
+	if i == nil {
+		return nil, fmt.Errorf("results argument must be a pointer to a slice, but was nil")
+	}
 	val := reflect.ValueOf(i)
 	typ := val.Type()
 	jsonMap := make(map[string]interface{})
@@ -274,6 +277,10 @@ func MarshalJsonByBson(i interface{}) ([]byte, error) {
 // UnmarshalJsonByBson deserializes JSON data into a target slice of structs based on "bson" tags.
 // It takes a byte slice containing JSON data and a pointer to a slice of the target struct for deserialization.
 func UnmarshalJsonByBson(data []byte, i interface{}) error {
+	if i == nil {
+		return fmt.Errorf("results argument must be a pointer to a slice, but was nil")
+	}
+
 	resultsVal := reflect.ValueOf(i)
 	if resultsVal.Kind() != reflect.Ptr {
 		return fmt.Errorf("results argument must be a pointer to a slice, but was a %s", resultsVal.Kind())
@@ -282,33 +289,52 @@ func UnmarshalJsonByBson(data []byte, i interface{}) error {
 	if sliceVal.Kind() == reflect.Interface {
 		sliceVal = sliceVal.Elem()
 	}
-
+	var mSliceJson []byte
+	var sliceType reflect.Type
 	if sliceVal.Kind() != reflect.Slice {
-		return fmt.Errorf("results argument must be a pointer to a slice, but was a pointer to %s", sliceVal.Kind())
-	}
-	sliceType := sliceVal.Type().Elem()
+		sliceType = sliceVal.Type()
 
-	// Unmarshal the JSON data into a slice of maps
-	var jsonSlice []map[string]interface{}
-	newJsonSlice := make([]map[string]interface{}, 0)
-	if err := json.Unmarshal(data, &jsonSlice); err != nil {
-		return fmt.Errorf("UnmarshalJsonByBson: failed to unmarshal JSON data: %v", err)
-	}
+		// Unmarshal the JSON data into a slice of maps
+		var jsonSlice map[string]interface{}
+		if err := json.Unmarshal(data, &jsonSlice); err != nil {
+			return fmt.Errorf("UnmarshalJsonByBson: failed to unmarshal JSON data: %v", err)
+		}
 
-	// Iterate through the JSON slice and create structs
-	for _, jsonMap := range jsonSlice {
 		structValue := reflect.New(sliceType).Elem()
-		newJson, err := unmarshalStructFields(structValue, jsonMap)
+		newJson, err := unmarshalStructFields(structValue, jsonSlice)
 		if err != nil {
 			return err
 		}
 
-		newJsonSlice = append(newJsonSlice, newJson)
+		mSliceJson, _ = json.Marshal(newJson)
+
+		return json.Unmarshal(mSliceJson, i)
+	} else {
+		sliceType = sliceVal.Type().Elem()
+
+		// Unmarshal the JSON data into a slice of maps
+		var jsonSlice []map[string]interface{}
+		newJsonSlice := make([]map[string]interface{}, 0)
+		if err := json.Unmarshal(data, &jsonSlice); err != nil {
+			return fmt.Errorf("UnmarshalJsonByBson: failed to unmarshal JSON data: %v", err)
+		}
+
+		// Iterate through the JSON slice and create structs
+		for _, jsonMap := range jsonSlice {
+			structValue := reflect.New(sliceType).Elem()
+			newJson, err := unmarshalStructFields(structValue, jsonMap)
+			if err != nil {
+				return err
+			}
+
+			newJsonSlice = append(newJsonSlice, newJson)
+		}
+
+		mSliceJson, _ = json.Marshal(newJsonSlice)
+
+		return json.Unmarshal(mSliceJson, i)
 	}
 
-	mSliceJson, _ := json.Marshal(newJsonSlice)
-
-	return json.Unmarshal(mSliceJson, i)
 }
 
 func If(condition bool, trueVal, falseVal interface{}) interface{} {
